@@ -1,0 +1,14 @@
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tiffinBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD7A8"/>
+      <stop offset="1" stop-color="#FC8019"/>
+    </linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="76" fill="url(#tiffinBg)"/>
+  <rect x="50" y="46" width="60" height="70" rx="12" fill="#FB641B"/>
+  <rect x="58" y="56" width="44" height="10" rx="5" fill="#FFF7ED"/>
+  <rect x="58" y="72" width="44" height="10" rx="5" fill="#FFF7ED"/>
+  <rect x="58" y="88" width="44" height="10" rx="5" fill="#FFF7ED"/>
+  <rect x="62" y="36" width="36" height="10" rx="5" fill="#FC8019"/>
+</svg>
