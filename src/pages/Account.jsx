@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import PageLoader from "../components/PageLoader";
+import { normalizeAssetUrl } from "../utils/url";
 import "../styles/pageLoader.css";
 
 const API_COMPANY = import.meta.env.VITE_API_COMPANY;
@@ -127,7 +128,9 @@ function Account({ user, onUserUpdate }) {
       })();
 
       const preset = user.avatarPreset || cachedAvatar?.avatarPreset || null;
-      const avatarUrl = user.avatarUrl || cachedAvatar?.avatarUrl || null;
+      const avatarUrl = normalizeAssetUrl(
+        user.avatarUrl || cachedAvatar?.avatarUrl || null
+      );
       setSelectedAvatar(preset);
       setCustomAvatar(avatarUrl);
 
@@ -311,7 +314,7 @@ function Account({ user, onUserUpdate }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Upload failed");
 
-      setCustomAvatar(data.url);
+      setCustomAvatar(normalizeAssetUrl(data.url));
       setSelectedAvatar(null);
       setShowAvatarPicker(false);
       persistAvatar({ avatarPreset: null, avatarUrl: data.url });
@@ -745,7 +748,7 @@ function Account({ user, onUserUpdate }) {
           <div className="account-avatar-block">
             <div className="account-avatar">
               {customAvatar ? (
-                <img src={customAvatar} alt="" />
+                <img src={normalizeAssetUrl(customAvatar)} alt="" />
               ) : selectedAvatar ? (
                 <span
                   className={`avatar-preset avatar-preset--${selectedAvatar}`}
