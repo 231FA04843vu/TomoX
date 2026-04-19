@@ -15,6 +15,7 @@ import Cart from "./pages/Cart";
 import Help from "./pages/Help";
 import Account from "./pages/Account";
 import Offers from "./pages/Offers";
+import { normalizeAssetUrl } from "./utils/url";
 
 // Lazy load less critical routes with prefetching hints
 const Checkout = lazy(() => import(/* webpackPrefetch: true */ "./pages/Checkout"));
@@ -42,6 +43,17 @@ const useDebounce = (value, delay) => {
 
   return debouncedValue;
 };
+
+const normalizeRestaurantPayload = (restaurant) => ({
+  ...restaurant,
+  logo: normalizeAssetUrl(restaurant?.logo),
+  menu: Array.isArray(restaurant?.menu)
+    ? restaurant.menu.map((item) => ({
+        ...item,
+        image: normalizeAssetUrl(item?.image),
+      }))
+    : restaurant?.menu,
+});
 
 function App() {
   const [restaurants, setRestaurants] = useState([]);
@@ -119,7 +131,11 @@ function App() {
         const data = await dataPromise;
 
         const [restaurantsData, couponsData, bannersData] = data;
-        setRestaurants(Array.isArray(restaurantsData) ? restaurantsData : []);
+        setRestaurants(
+          Array.isArray(restaurantsData)
+            ? restaurantsData.map(normalizeRestaurantPayload)
+            : []
+        );
         setCoupons(Array.isArray(couponsData) ? couponsData : []);
         setBanners(Array.isArray(bannersData) ? bannersData : []);
       } catch (error) {

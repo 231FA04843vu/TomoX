@@ -2,9 +2,21 @@ import React, { useEffect, useState, memo, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import PageLoader from './PageLoader';
+import { normalizeAssetUrl } from '../utils/url';
 import '../styles/pageLoader.css';
 
 const API_VENDOR = import.meta.env.VITE_API_VENDOR;
+
+const normalizeRestaurant = (restaurant) => ({
+  ...restaurant,
+  logo: normalizeAssetUrl(restaurant?.logo),
+  menu: Array.isArray(restaurant?.menu)
+    ? restaurant.menu.map((item) => ({
+        ...item,
+        image: normalizeAssetUrl(item?.image),
+      }))
+    : restaurant?.menu,
+});
 
 const RestaurantMenu = memo(() => {
   const { id } = useParams();
@@ -17,8 +29,9 @@ const RestaurantMenu = memo(() => {
     fetch(`${API_VENDOR}/api/restaurants/${id}`)
       .then((res) => res.json())
       .then((data) => {
-        setRestaurant(data);
-        if (data.menu && data.menu.length > 0) {
+        const normalizedRestaurant = normalizeRestaurant(data);
+        setRestaurant(normalizedRestaurant);
+        if (normalizedRestaurant.menu && normalizedRestaurant.menu.length > 0) {
           setSelectedCategory('all');
         }
       })
@@ -215,7 +228,7 @@ const RestaurantMenu = memo(() => {
                 <div key={item.itemId || item._id || item.id || `preview-item-${index}`} className="menu-cart-preview-row">
                   <div className="menu-cart-preview-item-main">
                     <img
-                      src={item.image || '/default-food.png'}
+                      src={normalizeAssetUrl(item.image) || '/default-food.png'}
                       alt={item.name}
                       className="menu-cart-preview-thumb"
                       loading="lazy"

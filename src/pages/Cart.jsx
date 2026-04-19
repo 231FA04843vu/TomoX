@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { normalizeAssetUrl } from '../utils/url';
 
 const Cart = ({ user }) => {
   const { cart, dispatch } = useCart();
@@ -83,7 +84,7 @@ const Cart = ({ user }) => {
                   <article key={itemKey} className="cart-item">
                     <div className="cart-item-media">
                       <img
-                        src={item.image || '/default-food.png'}
+                        src={normalizeAssetUrl(item.image) || '/default-food.png'}
                         alt={item.name}
                         loading="lazy"
                         decoding="async"

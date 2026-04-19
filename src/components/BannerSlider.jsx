@@ -4,6 +4,7 @@ import { Autoplay, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { normalizeAssetUrl } from "../utils/url";
 
 const API_COMPANY = import.meta.env.VITE_API_COMPANY;
 const THEME_GRADIENTS = [
@@ -39,8 +40,8 @@ const BannerSlider = memo(function BannerSlider({ offers = [] }) {
 
           if (hasImage) {
             const imageUrl = String(offer.image).startsWith("http")
-              ? offer.image
-              : `${API_COMPANY}${offer.image}`;
+              ? normalizeAssetUrl(offer.image)
+              : normalizeAssetUrl(`${API_COMPANY}${offer.image}`);
             const imageClassName = offer?.isAiGenerated
               ? "banner-image ai-banner-image"
               : "banner-image";

@@ -2,11 +2,13 @@
 
 import React, { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { normalizeAssetUrl } from "../utils/url";
 
 const RestaurantCard = memo(function RestaurantCard({ restaurant }) {
   const navigate = useNavigate();
 
   const { _id, name, cuisine, logo, rating = 4.5 } = restaurant;
+  const logoUrl = normalizeAssetUrl(logo);
 
   const handleClick = useCallback(() => {
     navigate(`/restaurant/${_id}`);
@@ -21,7 +23,7 @@ const RestaurantCard = memo(function RestaurantCard({ restaurant }) {
     >
       <div className="restaurant-image-wrapper">
         <img
-          src={logo}
+          src={logoUrl}
           alt={name}
           className="restaurant-image"
           loading="lazy"

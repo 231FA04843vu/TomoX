@@ -1,6 +1,7 @@
 import React, { memo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import RestaurantCard from "./RestaurantCard";
+import { normalizeAssetUrl } from "../utils/url";
 
 const SearchResultsModal = memo(function SearchResultsModal({
   isOpen,
@@ -102,7 +103,7 @@ const SearchResultsModal = memo(function SearchResultsModal({
                   >
                     {item.image ? (
                       <img
-                        src={item.image}
+                        src={normalizeAssetUrl(item.image)}
                         alt={item.name}
                         className="search-item-image"
                         loading="lazy"
@@ -151,7 +152,7 @@ const SearchResultsModal = memo(function SearchResultsModal({
                   <div key={offer.id} className="offer-card">
                     {offer.imageUrl ? (
                       <img
-                        src={offer.imageUrl}
+                        src={normalizeAssetUrl(offer.imageUrl)}
                         alt={offer.title}
                         className="offer-image"
                         loading="lazy"
