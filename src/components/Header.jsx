@@ -5,7 +5,7 @@ import SearchBar from "./SearchBar";
 import tomoxLogo from "../assets/tomologo.png";
 import { normalizeAssetUrl } from "../utils/url";
 
-const VITE_VENDOR_URL = import.meta.env.VITE_VENDOR_URL || "http://localhost:5174";
+const VITE_VENDOR_URL = import.meta.env.VITE_VENDOR_URL || "https://tvendor.netlify.app";
 
 const Header = memo(function Header({ user, onLogout, searchQuery, onSearchChange }) {
   const avatarPreset = user?.avatarPreset || null;
