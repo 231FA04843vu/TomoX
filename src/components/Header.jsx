@@ -3,12 +3,13 @@ import React, { memo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import tomoxLogo from "../assets/tomologo.png";
+import { normalizeAssetUrl } from "../utils/url";
 
 const VITE_VENDOR_URL = import.meta.env.VITE_VENDOR_URL || "http://localhost:5174";
 
 const Header = memo(function Header({ user, onLogout, searchQuery, onSearchChange }) {
   const avatarPreset = user?.avatarPreset || null;
-  const avatarUrl = user?.avatarUrl || null;
+  const avatarUrl = normalizeAssetUrl(user?.avatarUrl || null);
   const fallbackInitial = user?.name?.slice(0, 1)?.toUpperCase() || "U";
 
   const handleCorporateClick = useCallback((event) => {
