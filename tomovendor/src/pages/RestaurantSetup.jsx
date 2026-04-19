@@ -2,7 +2,27 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Toast, useToast } from '../components/Toast';
 
-const API = import.meta.env.VITE_API;
+const API = import.meta.env.VITE_API || 'https://tb-dddy.onrender.com';
+
+const normalizeAssetUrl = (value) => {
+  if (!value) return value;
+  const raw = String(value).trim();
+  if (!raw) return raw;
+
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(raw)) {
+    return raw.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, API.replace(/\/$/, ''));
+  }
+
+  if (raw.startsWith('/uploads/')) {
+    return `${API.replace(/\/$/, '')}${raw}`;
+  }
+
+  if (raw.startsWith('uploads/')) {
+    return `${API.replace(/\/$/, '')}/${raw}`;
+  }
+
+  return raw;
+};
 
 function RestaurantSetup() {
   const vendor = JSON.parse(localStorage.getItem('vendorInfo') || '{}');
@@ -27,13 +47,14 @@ function RestaurantSetup() {
         setLoading(true);
         const res = await axios.get(`${API}/api/restaurants/vendor/${vendorId}`);
         if (res.data) {
+          const savedLogo = normalizeAssetUrl(res.data.logo || '');
           setRestaurant({
             name: res.data.name || '',
             location: res.data.location || '',
             cuisine: Array.isArray(res.data.cuisine) ? res.data.cuisine.join(', ') : '',
-            logo: res.data.logo || '',
+            logo: savedLogo,
           });
-          setPreview(res.data.logo || '');
+          setPreview(savedLogo || '');
         }
       } catch (error) {
         console.error(error);
@@ -58,8 +79,25 @@ function RestaurantSetup() {
       const res = await axios.post(`${API}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setRestaurant((prev) => ({ ...prev, logo: res.data.url }));
-      showToast('Logo uploaded', 'success');
+
+      const uploadedLogo = normalizeAssetUrl(res.data.url);
+      setRestaurant((prev) => ({ ...prev, logo: uploadedLogo }));
+      setPreview(uploadedLogo);
+
+      if (restaurant.name && restaurant.location && restaurant.cuisine) {
+        const payload = {
+          ...restaurant,
+          logo: uploadedLogo,
+          cuisine: restaurant.cuisine
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean),
+        };
+        await axios.post(`${API}/api/restaurants/vendor/${vendorId}`, payload);
+        showToast('Logo uploaded and saved', 'success');
+      } else {
+        showToast('Logo uploaded. Click Save Configuration to persist.', 'success');
+      }
     } catch (error) {
       console.error(error);
       showToast('Logo upload failed', 'error');
