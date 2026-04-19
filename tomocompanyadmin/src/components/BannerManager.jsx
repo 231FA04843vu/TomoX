@@ -1,0 +1,219 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { API_BASE } from "../config";
+
+const BannerManager = () => {
+  const [banners, setBanners] = useState([]);
+  const [bannerType, setBannerType] = useState("offer");
+  const [flatOff, setFlatOff] = useState("45");
+  const [minAmount, setMinAmount] = useState("500");
+  const [referenceImage, setReferenceImage] = useState(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const fetchBanners = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/banners`);
+      setBanners(res.data);
+    } catch (err) {
+      console.error("Failed to fetch banners", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const setReferenceFile = (file) => {
+    if (!file) return;
+    if (!file.type?.startsWith("image/")) {
+      alert("Please drop/upload an image file.");
+      return;
+    }
+    setReferenceImage(file);
+  };
+
+  const fetchImageFromUrl = async (url) => {
+    const response = await fetch(url, { mode: "cors" });
+    if (!response.ok) throw new Error("Failed to fetch image");
+
+    const blob = await response.blob();
+    if (!blob.type?.startsWith("image/")) {
+      throw new Error("Dropped URL is not an image");
+    }
+
+    const fileName = `reference-${Date.now()}.${blob.type.split("/")[1] || "png"}`;
+    return new File([blob], fileName, { type: blob.type });
+  };
+
+  const extractImageUrlFromHtml = (htmlText = "") => {
+    const srcMatch = String(htmlText).match(/<img[^>]+src=["']([^"']+)["']/i);
+    return srcMatch?.[1] || "";
+  };
+
+  const handleReferenceDrop = async (event) => {
+    event.preventDefault();
+    setIsDragOver(false);
+
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+      setReferenceFile(file);
+      return;
+    }
+
+    const uriList = event.dataTransfer?.getData("text/uri-list")?.trim();
+    const htmlText = event.dataTransfer?.getData("text/html") || "";
+    const plainText = event.dataTransfer?.getData("text/plain")?.trim();
+    const imageUrl = uriList || extractImageUrlFromHtml(htmlText) || plainText;
+
+    if (!imageUrl || !/^https?:\/\//i.test(imageUrl)) {
+      alert("Drop an image file or a valid image URL from browser.");
+      return;
+    }
+
+    try {
+      const fetchedFile = await fetchImageFromUrl(imageUrl);
+      setReferenceFile(fetchedFile);
+    } catch (error) {
+      console.error("Failed to use dropped image URL", error);
+      alert("Could not read dropped image from browser. Try downloading and uploading image file.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure to delete this banner?")) return;
+    try {
+      await axios.delete(`${API_BASE}/api/banners/${id}`);
+      fetchBanners();
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!flatOff.trim() || !minAmount.trim()) {
+      alert("Please enter FLAT % and ABOVE amount.");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      let referenceImageDataUrl = "";
+
+      if (referenceImage) {
+        referenceImageDataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => reject(new Error("Failed to read reference image"));
+          reader.readAsDataURL(referenceImage);
+        });
+      }
+
+      await axios.post(`${API_BASE}/api/banners/ai-add`, {
+        bannerType,
+        flatOff,
+        minAmount,
+        referenceImageDataUrl,
+        link: "/offers",
+      });
+      setReferenceImage(null);
+      fetchBanners();
+    } catch (err) {
+      console.error("Failed to generate banner", err);
+      alert("Failed to add AI banner. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="section-box">
+      <h3><i className="fas fa-images"></i> Banner Manager</h3>
+
+      <form onSubmit={(e) => e.preventDefault()}>
+        <label>Banner Type</label>
+        <select value={bannerType} onChange={(e) => setBannerType(e.target.value)}>
+          <option value="offer">offer</option>
+          <option value="promotion">promotion</option>
+          <option value="festive offer">festive offer</option>
+        </select>
+
+        <label>Offer - FLAT %</label>
+        <input
+          type="number"
+          min="1"
+          max="100"
+          value={flatOff}
+          onChange={(e) => setFlatOff(e.target.value)}
+          placeholder="FLAT: 45%"
+          required
+        />
+
+        <label>ON - ABOVE</label>
+        <input
+          type="number"
+          min="1"
+          value={minAmount}
+          onChange={(e) => setMinAmount(e.target.value)}
+          placeholder="ABOVE: 500"
+          required
+        />
+
+        <label>Coupon Code</label>
+        <input type="text" value="Auto generated by AI" readOnly />
+
+        <label>Reference Image</label>
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={handleReferenceDrop}
+          style={{
+            border: isDragOver ? "2px dashed #2563eb" : "2px dashed #9ca3af",
+            borderRadius: "8px",
+            padding: "12px",
+            marginBottom: "10px",
+            background: isDragOver ? "rgba(37,99,235,0.08)" : "transparent",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: "13px" }}>
+            Drag image from Chrome here or choose file below.
+          </p>
+          {referenceImage ? (
+            <p style={{ margin: "6px 0 0", fontSize: "12px", color: "#16a34a" }}>
+              Selected: {referenceImage.name}
+            </p>
+          ) : null}
+        </div>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setReferenceFile(e.target.files?.[0] || null)}
+        />
+
+        <button type="button" onClick={handleGenerate} disabled={isGenerating}>
+          <i className="fas fa-wand-magic-sparkles"></i>
+          {isGenerating ? "Generating..." : "Generate"}
+        </button>
+      </form>
+
+      <div className="banner-list">
+        {banners.map((b) => (
+          <div key={b._id} className="banner-card">
+            <img className="banner-image-fit" src={`${API_BASE}${b.image}`} alt={b.title} />
+            <button
+              onClick={() => handleDelete(b._id)}
+              style={{ backgroundColor: "#e74c3c", marginTop: "10px" }}
+            >
+              <i className="fas fa-trash"></i> Delete
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default BannerManager;
