@@ -3,7 +3,7 @@ require("dotenv").config();
 
 // Use environment variables for credentials to avoid checking secrets into source control.
 const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-const EMAIL_PASS = (process.env.EMAIL_PASS || "").trim();
+const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
 const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
 const SMTP_HOST = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
 const SMTP_PORT = Number(process.env.SMTP_PORT || 465);

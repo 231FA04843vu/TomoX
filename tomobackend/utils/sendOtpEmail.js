@@ -2,8 +2,8 @@ const nodemailer = require("nodemailer");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
-const EMAIL_USER = process.env.EMAIL_USER;
-const EMAIL_PASS = process.env.EMAIL_PASS;
+const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
+const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
 
 let transporter = null;
