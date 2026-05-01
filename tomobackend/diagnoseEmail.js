@@ -6,7 +6,7 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+const EMAIL_PASS = process.env.EMAIL_PASS || '';
 
 console.log('--- diagnoseEmail.js ---');
 console.log('EMAIL_USER set:', !!EMAIL_USER);

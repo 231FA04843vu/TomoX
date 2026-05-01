@@ -11,7 +11,7 @@ const getTransporter = () => {
   if (transporter) return transporter;
   
   const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-  const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+    const EMAIL_PASS = process.env.EMAIL_PASS || "";
   
   console.log("[OTP Transporter] Initializing transporter");
   console.log("[OTP Transporter] EMAIL_USER set:", !!EMAIL_USER);
