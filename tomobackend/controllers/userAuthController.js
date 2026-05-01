@@ -143,6 +143,7 @@ exports.requestSignupOtp = async (req, res) => {
     if (!email) return res.status(400).json({ message: "Email required" });
 
     const normalizedEmail = email.toLowerCase();
+    console.log(`[OTP] requestSignupOtp received for ${normalizedEmail}`);
 
     const exists = await User.findOne({ email: normalizedEmail });
     if (exists) {
@@ -156,10 +157,13 @@ exports.requestSignupOtp = async (req, res) => {
     });
 
     try {
+      console.log(`[OTP] sending email to ${normalizedEmail}`);
+      const start = Date.now();
       await sendOtpEmail(email, otp);
+      console.log(`[OTP] email sent to ${normalizedEmail} in ${Date.now() - start}ms`);
     } catch (err) {
       otpStore.delete(normalizedEmail);
-      console.error("Failed to send OTP email:", err && err.message ? err.message : err);
+      console.error("[OTP] Failed to send OTP email:", err && err.message ? err.message : err);
       return res.status(500).json({ message: "Failed to send OTP email" });
     }
 
@@ -175,6 +179,7 @@ exports.requestResetPasswordOtp = async (req, res) => {
     if (!email) return res.status(400).json({ message: "Email required" });
 
     const normalizedEmail = email.toLowerCase();
+    console.log(`[OTP] requestResetPasswordOtp received for ${normalizedEmail}`);
 
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
@@ -188,10 +193,13 @@ exports.requestResetPasswordOtp = async (req, res) => {
     });
 
     try {
+      console.log(`[OTP] sending reset email to ${normalizedEmail}`);
+      const start = Date.now();
       await sendOtpEmail(email, otp);
+      console.log(`[OTP] reset email sent to ${normalizedEmail} in ${Date.now() - start}ms`);
     } catch (err) {
       otpStore.delete(normalizedEmail);
-      console.error("Failed to send OTP email:", err && err.message ? err.message : err);
+      console.error("[OTP] Failed to send OTP email:", err && err.message ? err.message : err);
       return res.status(500).json({ message: "Failed to send OTP email" });
     }
 
