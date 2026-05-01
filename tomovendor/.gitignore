@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+*.lock
+
+# Build outputs
+dist/
+dist-ssr/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor & OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.swp
+
+# Temporary files
+*.tmp
+.cache/
+
+# Keep example file
+!.env.example
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

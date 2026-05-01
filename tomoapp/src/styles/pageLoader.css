@@ -1,0 +1,132 @@
+/* Full Page Loader - Fixed Overlay */
+.page-loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #f8f8f8 0%, #f5f5f5 100%);
+  padding: 20px;
+  z-index: 10000;
+  overflow: auto;
+}
+
+.page-loader-content {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.page-loader-dots {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.page-loader-text {
+  font-size: 18px;
+  color: #666;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  animation: fade-in-out 1.5s ease-in-out infinite;
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Skeleton Cards Grid */
+.page-loader-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.skeleton-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(
+    90deg,
+    #e0e0e0 25%,
+    #f0f0f0 50%,
+    #e0e0e0 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.skeleton-text {
+  padding: 12px;
+}
+
+.skeleton-line {
+  height: 10px;
+  background: linear-gradient(
+    90deg,
+    #e0e0e0 25%,
+    #f0f0f0 50%,
+    #e0e0e0 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-line-1 {
+  width: 85%;
+}
+
+.skeleton-line-2 {
+  width: 60%;
+  margin-bottom: 0;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-loader-container {
+    padding: 16px;
+  }
+
+  .page-loader-skeleton {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .skeleton-image {
+    height: 120px;
+  }
+
+  .page-loader-text {
+    font-size: 16px;
+  }
+}

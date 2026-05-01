@@ -1,0 +1,309 @@
+/* CRITICAL RENDERING PATH OPTIMIZATIONS */
+
+/* 1. SYSTEM FONTS - Load instantly (no network wait) */
+@font-face {
+  font-family: "System Font Stack";
+  src: local("system-ui"), local("-apple-system"), local("Segoe UI"), local("Roboto");
+  font-display: swap; /* Show fallback while loading */
+}
+
+/* Change to system fonts for instant rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  /* Use system fonts FIRST - no network wait */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-kerning: auto;
+  text-rendering: optimizeSpeed; /* Faster but slightly worse quality */
+}
+
+/* 2. REDUCE PAINT AREAS - Use contain */
+.app-container {
+  contain: layout style;
+  will-change: auto;
+}
+
+.site-header {
+  contain: layout style paint;
+  will-change: auto;
+  /* Prevent layout shifts */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* 3. CRITICAL CSS - Inline essentials */
+.site-main {
+  contain: layout style;
+}
+
+/* 4. ELIMINATE TRANSITIONS ON LOAD */
+body.loading * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Only enable transitions after page load */
+body.loaded * {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.15s; /* Faster transitions = feels snappier */
+}
+
+/* 5. GPU ACCELERATION - Only when needed */
+.restaurant-card {
+  will-change: transform; /* GPU accelerate only transforms */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.restaurant-card:hover {
+  /* Only animate transform = GPU accelerated */
+  transform: translateZ(0) translateY(-2px);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Remove box-shadow animations (non-GPU) */
+.restaurant-card:hover {
+  box-shadow: none; /* Don't use shadows for hover - use transform */
+}
+
+/* 6. CONTENT VISIBILITY - Defer rendering of below-fold content */
+.below-fold,
+.restaurant-section > .restaurant-card:nth-child(n+9) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 300px;
+}
+
+/* 7. OPTIMIZE SCROLLING */
+html {
+  scroll-behavior: auto; /* instant > smooth */
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+}
+
+/* Smooth scrolling only for header scroll, not page scroll */
+.scrollable-container {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 8. REDUCE REPAINTS - Optimize text rendering */
+.restaurant-name,
+.restaurant-info,
+.nav-links {
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeSpeed; /* Fast rendering over perfection */
+}
+
+/* 9. IMAGES - CRITICAL FIX */
+img {
+  /* Prevent layout shift */
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Async decode - non-blocking */
+  decoding: async;
+  /* Lazy load off-screen */
+  loading: lazy;
+}
+
+/* Critical images (LCP) */
+.restaurant-card img,
+img[fetchpriority="high"] {
+  decoding: sync; /* Sync for LCP elements */
+  loading: eager;
+  fetchpriority: high;
+}
+
+/* 10. BUTTONS - REMOVE EXPENSIVE EFFECTS */
+button,
+a {
+  /* Remove box-shadow (expensive) */
+  box-shadow: none;
+  /* Only use color transitions (cheap) */
+  transition: color 0.1s, background-color 0.1s;
+}
+
+button:active,
+a:active {
+  /* Instant feedback on click */
+  opacity: 0.8;
+}
+
+/* 11. MINIMIZE REFLOWS - Fixed dimensions */
+.restaurant-image-wrapper {
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 12. ANIMATIONS - GPU ONLY */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Use will-change sparingly */
+.animate-in {
+  animation: fadeIn 0.3s ease-in;
+  will-change: opacity; /* GPU for opacity changes */
+}
+
+/* 13. REMOVE HEAVY EFFECTS */
+.back-button {
+  /* Remove text-shadow (expensive) */
+  text-shadow: none;
+  transition: all 0s; /* No transition initially */
+}
+
+.back-button:hover {
+  /* Only change color on hover */
+  background-color: #2a2a2a;
+  border-color: #3a3a3a;
+  transition: background-color 0.1s, border-color 0.1s;
+}
+
+/* 14. DEFER NON-CRITICAL CSS */
+@media print {
+  /* Print styles */
+  body {
+    color: black;
+    background: white;
+  }
+}
+
+/* 15. OPTIMIZE GRID LAYOUTS */
+.restaurant-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  contain: layout style;
+  /* Prevent expensive relayout */
+  grid-auto-flow: row;
+  grid-auto-rows: minmax(auto, 1fr);
+}
+
+/* 16. CRITICAL FONTS LOADING STRATEGY */
+@supports (font-display: optional) {
+  @font-face {
+    font-family: "Inter";
+    /* Optional = don't block rendering */
+    font-display: optional;
+  }
+}
+
+/* 17. POINTER EVENTS OPTIMIZATION */
+.restaurant-card {
+  /* Reduce event reflow by setting touch-action */
+  touch-action: manipulation;
+  pointer-events: auto;
+}
+
+/* 18. CONTAINER QUERIES - Responsive without recalc */
+@container (min-width: 400px) {
+  .restaurant-card {
+    grid-column: span 1;
+  }
+}
+
+/* 19. DISABLE EXPENSIVE FEATURES */
+* {
+  /* Disable text selection on interactive elements */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+button {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* 20. OPTIMIZE FOCUS STATES */
+:focus {
+  /* Use outline instead of box-shadow */
+  outline: 2px solid #ffb020;
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid #ffb020;
+  outline-offset: 2px;
+}
+
+/* 21. REDUCE LAYOUT COMPLEXITY */
+.category-shortcuts {
+  contain: layout;
+}
+
+.shortcut-card {
+  contain: layout style paint;
+}
+
+/* 22. BANNER OPTIMIZATION */
+.banner-slider {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+.swiper-slide {
+  /* Prevent layout thrashing */
+  contain: layout style;
+}
+
+/* 23. MINIMIZE CSS FILES */
+/* Remove redundant styles */
+/* Use shorthand properties */
+/* Consolidate rules */
+
+/* 24. PASSIVE EVENT LISTENERS */
+/* Note: Applied in JavaScript, not CSS */
+
+/* 25. CRITICAL PATH STYLES */
+/* These are the ONLY styles needed for initial render */
+
+:root {
+  --primary-color: #ffb020;
+  --bg-primary: #0b0b0b;
+  --text-primary: #f7f7f7;
+}
+
+/* FAST VERSION - For slow connections */
+@media (prefers-reduced-data: reduce) {
+  img {
+    /* Disable animations for data saver */
+    animation: none;
+    transition: none;
+  }
+  
+  * {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* MOTION PREFERENCES */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
