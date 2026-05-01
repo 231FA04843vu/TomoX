@@ -139,24 +139,29 @@ exports.me = async (req, res) => {
 
 exports.requestSignupOtp = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = String(req.body?.email || "").trim();
     if (!email) return res.status(400).json({ message: "Email required" });
 
-    const exists = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase();
+
+    const exists = await User.findOne({ email: normalizedEmail });
     if (exists) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
     const otp = generateOtp();
-    otpStore.set(email.toLowerCase(), {
+    otpStore.set(normalizedEmail, {
       code: otp,
       expiresAt: Date.now() + OTP_EXPIRY_MS,
     });
 
-    // Send OTP email asynchronously so slow mail/sms providers don't block the request
-    sendOtpEmail(email, otp).catch((err) => {
+    try {
+      await sendOtpEmail(email, otp);
+    } catch (err) {
+      otpStore.delete(normalizedEmail);
       console.error("Failed to send OTP email:", err && err.message ? err.message : err);
-    });
+      return res.status(500).json({ message: "Failed to send OTP email" });
+    }
 
     res.json({ message: "OTP sent" });
   } catch (err) {
@@ -166,24 +171,29 @@ exports.requestSignupOtp = async (req, res) => {
 
 exports.requestResetPasswordOtp = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = String(req.body?.email || "").trim();
     if (!email) return res.status(400).json({ message: "Email required" });
 
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(400).json({ message: "Email not found" });
     }
 
     const otp = generateOtp();
-    otpStore.set(email.toLowerCase(), {
+    otpStore.set(normalizedEmail, {
       code: otp,
       expiresAt: Date.now() + OTP_EXPIRY_MS,
     });
 
-    // Send OTP email asynchronously so slow mail/sms providers don't block the request
-    sendOtpEmail(email, otp).catch((err) => {
+    try {
+      await sendOtpEmail(email, otp);
+    } catch (err) {
+      otpStore.delete(normalizedEmail);
       console.error("Failed to send OTP email:", err && err.message ? err.message : err);
-    });
+      return res.status(500).json({ message: "Failed to send OTP email" });
+    }
 
     res.json({ message: "OTP sent" });
   } catch (err) {
