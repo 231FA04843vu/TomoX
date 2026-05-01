@@ -24,13 +24,40 @@ if (EMAIL_USER && EMAIL_PASS) {
       pass: EMAIL_PASS
     }
   });
+  // verify connection configuration with a fallback to common alternate ports
+  (async () => {
+    try {
+      await transporter.verify();
+      console.log("Mail transporter is configured and ready");
+      return;
+    } catch (err) {
+      console.error("Mail transporter verification failed on", SMTP_HOST, "port", SMTP_PORT, "->", err && err.message ? err.message : err);
+    }
 
-  // verify connection configuration
-  transporter.verify().then(() => {
-    console.log("Mail transporter is configured and ready");
-  }).catch((err) => {
-    console.error("Mail transporter verification failed:", err && err.message ? err.message : err);
-  });
+    // Attempt fallbacks if initial verification failed (common when port 465 is blocked)
+    const fallbacks = [587, 2525];
+    for (const port of fallbacks) {
+      try {
+        const altTransporter = nodemailer.createTransport({
+          host: SMTP_HOST,
+          port,
+          secure: port === 465, // secure only for 465
+          connectionTimeout: 20000,
+          greetingTimeout: 20000,
+          socketTimeout: 30000,
+          auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+        });
+        await altTransporter.verify();
+        transporter = altTransporter; // replace with working transporter
+        console.log(`Mail transporter verified on fallback port ${port}`);
+        return;
+      } catch (err) {
+        console.warn(`Fallback transporter verify failed on port ${port}:`, err && err.message ? err.message : err);
+      }
+    }
+
+    console.error("All transporter verification attempts failed. Email sending may time out or be blocked by the host.");
+  })();
 } else {
   console.warn("Email credentials not provided. Set EMAIL_USER and EMAIL_PASS in environment.");
 }
