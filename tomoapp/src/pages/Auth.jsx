@@ -4,6 +4,7 @@ import tomoxLogo from "../assets/tomologo.png";
 
 const API_COMPANY = import.meta.env.VITE_API_COMPANY;
 const ALLOWED_EMAIL_DOMAINS = ["@gmail.com", "@domain.com"];
+const OTP_REQUEST_TIMEOUT_MS = 20000;
 
 const isValidEmailDomain = (email) => {
   if (!email) return false;
@@ -170,11 +171,14 @@ function Auth({ onAuth }) {
 
     setOtpLoading(true);
     setOtpStatus(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), OTP_REQUEST_TIMEOUT_MS);
     try {
       const res = await fetch(`${API_COMPANY}/api/signup/otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: form.email }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to send OTP");
@@ -183,8 +187,12 @@ function Auth({ onAuth }) {
       setOtpStatus({ type: "success", message: "OTP sent to email" });
       setOtpCooldown(30);
     } catch (err) {
-      setOtpStatus({ type: "error", message: err.message || "Failed to send OTP" });
+      setOtpStatus({
+        type: "error",
+        message: err.name === "AbortError" ? "OTP request timed out. Try again." : err.message || "Failed to send OTP",
+      });
     } finally {
+      clearTimeout(timeoutId);
       setOtpLoading(false);
     }
   };
@@ -223,11 +231,14 @@ function Auth({ onAuth }) {
 
     setResetLoading(true);
     setResetStatus(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), OTP_REQUEST_TIMEOUT_MS);
     try {
       const res = await fetch(`${API_COMPANY}/api/reset-password/otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: resetEmail }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to send OTP");
@@ -236,8 +247,12 @@ function Auth({ onAuth }) {
       setResetStatus({ type: "success", message: "OTP sent to email" });
       setResetCooldown(30);
     } catch (err) {
-      setResetStatus({ type: "error", message: err.message || "Failed to send OTP" });
+      setResetStatus({
+        type: "error",
+        message: err.name === "AbortError" ? "OTP request timed out. Try again." : err.message || "Failed to send OTP",
+      });
     } finally {
+      clearTimeout(timeoutId);
       setResetLoading(false);
     }
   };

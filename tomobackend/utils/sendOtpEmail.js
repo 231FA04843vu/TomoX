@@ -5,6 +5,7 @@ require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
 const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
+const OTP_EMAIL_TIMEOUT_MS = 15000;
 
 let transporter = null;
 if (EMAIL_USER && EMAIL_PASS) {
@@ -12,12 +13,26 @@ if (EMAIL_USER && EMAIL_PASS) {
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
+    connectionTimeout: OTP_EMAIL_TIMEOUT_MS,
+    greetingTimeout: OTP_EMAIL_TIMEOUT_MS,
+    socketTimeout: OTP_EMAIL_TIMEOUT_MS,
     auth: {
       user: EMAIL_USER,
       pass: EMAIL_PASS,
     },
   });
 }
+
+const withTimeout = (promise, timeoutMs, timeoutMessage) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      const timeoutId = setTimeout(() => {
+        clearTimeout(timeoutId);
+        reject(new Error(timeoutMessage));
+      }, timeoutMs);
+    }),
+  ]);
 
 const sendOtpEmail = async (to, otp) => {
   if (!transporter) {
@@ -95,13 +110,13 @@ TomoX Team
 </html>
 `;
 
-  await transporter.sendMail({
+  await withTimeout(transporter.sendMail({
     from: `"TomoX" <${EMAIL_USER}>`,
     to,
     subject,
     text,
     html,
-  });
+  }), OTP_EMAIL_TIMEOUT_MS, "OTP email send timed out");
 };
 
 module.exports = sendOtpEmail;
