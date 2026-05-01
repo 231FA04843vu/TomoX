@@ -39,17 +39,6 @@ const getTransporter = () => {
   return transporter;
 };
 
-const withTimeout = (promise, timeoutMs, timeoutMessage) =>
-  Promise.race([
-    promise,
-    new Promise((_, reject) => {
-      const timeoutId = setTimeout(() => {
-        clearTimeout(timeoutId);
-        reject(new Error(timeoutMessage));
-      }, timeoutMs);
-    }),
-  ]);
-
 const sendOtpEmail = async (to, otp) => {
   let currentTransporter;
   try {
@@ -131,13 +120,13 @@ TomoX Team
 `;
 
   const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-  await withTimeout(currentTransporter.sendMail({
+  await currentTransporter.sendMail({
     from: `"TomoX" <${EMAIL_USER}>`,
     to,
     subject,
     text,
     html,
-  }), OTP_EMAIL_TIMEOUT_MS, "OTP email send timed out");
+  });
 };
 
 module.exports = sendOtpEmail;
