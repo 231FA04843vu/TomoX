@@ -2,13 +2,26 @@ const nodemailer = require("nodemailer");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
-const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
 const OTP_EMAIL_TIMEOUT_MS = 15000;
 
 let transporter = null;
-if (EMAIL_USER && EMAIL_PASS) {
+
+const getTransporter = () => {
+  if (transporter) return transporter;
+  
+  const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
+  const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+  
+  console.log("[OTP Transporter] Initializing transporter");
+  console.log("[OTP Transporter] EMAIL_USER set:", !!EMAIL_USER);
+  console.log("[OTP Transporter] EMAIL_PASS set:", !!EMAIL_PASS);
+  console.log("[OTP Transporter] EMAIL_USER value:", EMAIL_USER);
+  
+  if (!EMAIL_USER || !EMAIL_PASS) {
+    throw new Error("EMAIL_USER and EMAIL_PASS must be set in environment variables");
+  }
+
   transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -21,7 +34,10 @@ if (EMAIL_USER && EMAIL_PASS) {
       pass: EMAIL_PASS,
     },
   });
-}
+  
+  console.log("[OTP Transporter] Transporter created successfully");
+  return transporter;
+};
 
 const withTimeout = (promise, timeoutMs, timeoutMessage) =>
   Promise.race([
@@ -35,8 +51,12 @@ const withTimeout = (promise, timeoutMs, timeoutMessage) =>
   ]);
 
 const sendOtpEmail = async (to, otp) => {
-  if (!transporter) {
-    throw new Error("Email transporter not configured");
+  let currentTransporter;
+  try {
+    currentTransporter = getTransporter();
+  } catch (err) {
+    console.error("[OTP Email] Failed to get transporter:", err.message);
+    throw err;
   }
 
   const subject = "Your TomoX verification code";
@@ -110,7 +130,8 @@ TomoX Team
 </html>
 `;
 
-  await withTimeout(transporter.sendMail({
+  const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
+  await withTimeout(currentTransporter.sendMail({
     from: `"TomoX" <${EMAIL_USER}>`,
     to,
     subject,
