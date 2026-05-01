@@ -163,7 +163,10 @@ exports.requestSignupOtp = async (req, res) => {
       console.log(`[OTP] email sent to ${normalizedEmail} in ${Date.now() - start}ms`);
     } catch (err) {
       otpStore.delete(normalizedEmail);
-      console.error("[OTP] Failed to send OTP email:", err && err.message ? err.message : err);
+      console.error("[OTP] Failed to send OTP email:", err && err.stack ? err.stack : err);
+      if (process.env.NODE_ENV !== "production") {
+        return res.status(500).json({ message: "Failed to send OTP email", error: err && err.message ? err.message : String(err) });
+      }
       return res.status(500).json({ message: "Failed to send OTP email" });
     }
 
@@ -199,7 +202,10 @@ exports.requestResetPasswordOtp = async (req, res) => {
       console.log(`[OTP] reset email sent to ${normalizedEmail} in ${Date.now() - start}ms`);
     } catch (err) {
       otpStore.delete(normalizedEmail);
-      console.error("[OTP] Failed to send OTP email:", err && err.message ? err.message : err);
+      console.error("[OTP] Failed to send OTP email:", err && err.stack ? err.stack : err);
+      if (process.env.NODE_ENV !== "production") {
+        return res.status(500).json({ message: "Failed to send OTP email", error: err && err.message ? err.message : String(err) });
+      }
       return res.status(500).json({ message: "Failed to send OTP email" });
     }
 
