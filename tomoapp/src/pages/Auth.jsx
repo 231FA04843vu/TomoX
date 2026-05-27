@@ -2,13 +2,22 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import tomoxLogo from "../assets/tomologo.png";
 
-const API_COMPANY = import.meta.env.VITE_API_COMPANY;
+import { API_BASE as API_COMPANY } from "../utils/url";
 const ALLOWED_EMAIL_DOMAINS = ["@gmail.com", "@domain.com"];
 const OTP_REQUEST_TIMEOUT_MS = 20000;
 
 const isValidEmailDomain = (email) => {
   if (!email) return false;
   return ALLOWED_EMAIL_DOMAINS.some((domain) => email.toLowerCase().endsWith(domain));
+};
+
+const formatOtpErrorMessage = (data, fallback) => {
+  const parts = [data?.message, data?.error, data?.code, data?.responseCode]
+    .map((value) => (value === undefined || value === null ? "" : String(value).trim()))
+    .filter(Boolean);
+
+  if (!parts.length) return fallback;
+  return parts.join(" - ");
 };
 
 function Auth({ onAuth }) {
@@ -181,7 +190,7 @@ function Auth({ onAuth }) {
         signal: controller.signal,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to send OTP");
+      if (!res.ok) throw new Error(formatOtpErrorMessage(data, "Failed to send OTP"));
       setOtpSent(true);
       setOtpVerified(false);
       setOtpStatus({ type: "success", message: "OTP sent to email" });
@@ -241,7 +250,7 @@ function Auth({ onAuth }) {
         signal: controller.signal,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to send OTP");
+      if (!res.ok) throw new Error(formatOtpErrorMessage(data, "Failed to send OTP"));
       setResetOtpSent(true);
       setResetOtpVerified(false);
       setResetStatus({ type: "success", message: "OTP sent to email" });

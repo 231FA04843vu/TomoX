@@ -23,6 +23,8 @@ const trimTrailingSlash = (value = "") => value.replace(/\/$/, "");
 
 API_BASE = trimTrailingSlash(API_BASE || "");
 
+export { API_BASE };
+
 export function normalizeAssetUrl(value) {
   if (!value) return value;
 
