@@ -4,7 +4,7 @@ import tomoxLogo from "../assets/tomologo.png";
 
 import { API_BASE as API_COMPANY } from "../utils/url";
 const ALLOWED_EMAIL_DOMAINS = ["@gmail.com", "@domain.com"];
-const OTP_REQUEST_TIMEOUT_MS = 20000;
+const OTP_REQUEST_TIMEOUT_MS = 60000;
 
 const isValidEmailDomain = (email) => {
   if (!email) return false;
