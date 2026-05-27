@@ -49,6 +49,13 @@ const getOtpEntry = (email) => {
   return entry;
 };
 
+const getOtpSendErrorDetails = (err) => ({
+  message: err && err.message ? err.message : String(err),
+  code: err && err.code ? err.code : undefined,
+  responseCode: err && err.responseCode ? err.responseCode : undefined,
+  response: err && err.response ? err.response : undefined,
+});
+
 function generateToken(user) {
   return jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" });
 }
@@ -164,10 +171,10 @@ exports.requestSignupOtp = async (req, res) => {
     } catch (err) {
       otpStore.delete(normalizedEmail);
       console.error("[OTP] Failed to send OTP email:", err && err.stack ? err.stack : err);
-      if (process.env.NODE_ENV !== "production") {
-        return res.status(500).json({ message: "Failed to send OTP email", error: err && err.message ? err.message : String(err) });
-      }
-      return res.status(500).json({ message: "Failed to send OTP email" });
+      return res.status(500).json({
+        message: "Failed to send OTP email",
+        ...getOtpSendErrorDetails(err),
+      });
     }
 
     res.json({ message: "OTP sent" });
@@ -203,10 +210,10 @@ exports.requestResetPasswordOtp = async (req, res) => {
     } catch (err) {
       otpStore.delete(normalizedEmail);
       console.error("[OTP] Failed to send OTP email:", err && err.stack ? err.stack : err);
-      if (process.env.NODE_ENV !== "production") {
-        return res.status(500).json({ message: "Failed to send OTP email", error: err && err.message ? err.message : String(err) });
-      }
-      return res.status(500).json({ message: "Failed to send OTP email" });
+      return res.status(500).json({
+        message: "Failed to send OTP email",
+        ...getOtpSendErrorDetails(err),
+      });
     }
 
     res.json({ message: "OTP sent" });

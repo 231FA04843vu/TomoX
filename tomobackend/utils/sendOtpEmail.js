@@ -3,7 +3,7 @@ const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
-const OTP_EMAIL_TIMEOUT_MS = 15000;
+const OTP_EMAIL_TIMEOUT_MS = 20000;
 
 let transporter = null;
 
@@ -11,21 +11,24 @@ const getTransporter = () => {
   if (transporter) return transporter;
   
   const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-    const EMAIL_PASS = process.env.EMAIL_PASS || "";
+  const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+  const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
+  const SMTP_HOST = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
+  const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
+  const SMTP_SECURE = String(process.env.SMTP_SECURE || SMTP_PORT === 465).toLowerCase() === "true";
   
   console.log("[OTP Transporter] Initializing transporter");
   console.log("[OTP Transporter] EMAIL_USER set:", !!EMAIL_USER);
   console.log("[OTP Transporter] EMAIL_PASS set:", !!EMAIL_PASS);
-  console.log("[OTP Transporter] EMAIL_USER value:", EMAIL_USER);
   
   if (!EMAIL_USER || !EMAIL_PASS) {
     throw new Error("EMAIL_USER and EMAIL_PASS must be set in environment variables");
   }
 
   transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_SECURE,
     connectionTimeout: OTP_EMAIL_TIMEOUT_MS,
     greetingTimeout: OTP_EMAIL_TIMEOUT_MS,
     socketTimeout: OTP_EMAIL_TIMEOUT_MS,
@@ -33,6 +36,10 @@ const getTransporter = () => {
       user: EMAIL_USER,
       pass: EMAIL_PASS,
     },
+  });
+
+  transporter.verify().catch((err) => {
+    console.error("[OTP Transporter] Verification failed:", err && err.message ? err.message : err);
   });
   
   console.log("[OTP Transporter] Transporter created successfully");
@@ -120,8 +127,9 @@ TomoX Team
 `;
 
   const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
+  const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
   await currentTransporter.sendMail({
-    from: `"TomoX" <${EMAIL_USER}>`,
+    from: `"TomoX" <${EMAIL_FROM}>`,
     to,
     subject,
     text,
