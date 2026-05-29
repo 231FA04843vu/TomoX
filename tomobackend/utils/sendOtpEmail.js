@@ -1,6 +1,5 @@
 const nodemailer = require("nodemailer");
 const path = require("path");
-const dns = require("dns");
 require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
@@ -8,8 +7,7 @@ const OTP_EMAIL_TIMEOUT_MS = 20000;
 
 let transporter = null;
 
-// Resolve SMTP host to IPv4 when possible to avoid ENETUNREACH/IPv6 timeouts on some hosts.
-const getTransporter = async () => {
+const getTransporter = () => {
   if (transporter) return transporter;
 
   const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
@@ -27,20 +25,8 @@ const getTransporter = async () => {
     throw new Error("EMAIL_USER and EMAIL_PASS must be set in environment variables");
   }
 
-  // Try to resolve an IPv4 address for the SMTP host to avoid IPv6 routing issues on some platforms.
-  let connectHost = SMTP_HOST;
-  try {
-    const lookup = await dns.promises.lookup(SMTP_HOST, { family: 4 });
-    if (lookup && lookup.address) {
-      connectHost = lookup.address;
-      console.log(`[OTP Transporter] Resolved ${SMTP_HOST} -> ${connectHost} (ipv4)`);
-    }
-  } catch (err) {
-    console.log(`[OTP Transporter] IPv4 lookup failed for ${SMTP_HOST}, falling back to hostname:`, err && err.message ? err.message : err);
-  }
-
   transporter = nodemailer.createTransport({
-    host: connectHost,
+    host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_SECURE,
     connectionTimeout: OTP_EMAIL_TIMEOUT_MS,
@@ -49,10 +35,6 @@ const getTransporter = async () => {
     auth: {
       user: EMAIL_USER,
       pass: EMAIL_PASS,
-    },
-    tls: {
-      // If we used an IPv4 literal for host, set servername so TLS SNI uses the real host name.
-      servername: SMTP_HOST,
     },
   });
 
@@ -65,97 +47,19 @@ const getTransporter = async () => {
 };
 
 const sendOtpEmail = async (to, otp) => {
-  const SENDGRID_KEY = (process.env.SENDGRID_API_KEY || "").trim();
-  const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-  const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
-
-  // If SendGrid API key is present, prefer API send (bypasses SMTP egress restrictions)
-  if (SENDGRID_KEY) {
-    try {
-      if (!sgMail) sgMail = require("@sendgrid/mail");
-      sgMail.setApiKey(SENDGRID_KEY);
-      const subject = "Your TomoX verification code";
-      const text = `Your TomoX verification code is ${otp}.\n\nThis code will expire in 10 minutes. If you did not request this, please ignore this email.`;
-      const html = `
-        <!doctype html><html><body><p>Your TomoX verification code is <strong>${otp}</strong>.</p><p>This code will expire in 10 minutes.</p></body></html>`;
-      await sgMail.send({ to, from: `TomoX <${EMAIL_FROM}>`, subject, text, html });
-      console.log(`[OTP SendGrid] Email sent to ${to}`);
-      return;
-    } catch (err) {
-      console.error("[OTP SendGrid] Failed to send via SendGrid:", err && err.message ? err.message : err);
-      // fall through to SMTP attempt
-    }
-  }
-
-  let currentTransporter;
-  try {
-    currentTransporter = await getTransporter();
-  } catch (err) {
-    console.error("[OTP Email] Failed to get transporter:", err && err.message ? err.message : err);
-    throw err;
-  }
+  const currentTransporter = getTransporter();
 
   const subject = "Your TomoX verification code";
-  const text = `Your TomoX verification code is ${otp}.\n\nThis code will expire in 10 minutes. If you did not request this, please ignore this email.\n\nCustomer app: ${CUSTOMER_APP_URL}\n\nThanks,\nTomoX Team`;
+  const text = `\nYour TomoX verification code is ${otp}.\n\nThis code will expire in 10 minutes. If you did not request this, please ignore this email.\n\nCustomer app: ${CUSTOMER_APP_URL}\n\nThanks,\nTomoX Team\n`;
 
   const otpChars = String(otp).padStart(4, "0").slice(-4).split("");
   const otpBoxes = otpChars
     .map(
-      (digit) => `
-        <td style="background:#0b0b0b; border:1px solid #2a2a2a; border-radius:12px; width:52px; height:56px; text-align:center; font-size:26px; font-weight:700; color:#ffb020;">
-          ${digit}
-        </td>`
+      (digit) => `\n        <td style="background:#0b0b0b; border:1px solid #2a2a2a; border-radius:12px; width:52px; height:56px; text-align:center; font-size:26px; font-weight:700; color:#ffb020;">\n          ${digit}\n        </td>`
     )
     .join("");
 
-  const html = `
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TomoX Verification Code</title>
-  </head>
-  <body style="margin:0; padding:0; background:#0b0b0b; color:#f8f8f8; font-family: 'Space Grotesk', 'Inter', Arial, sans-serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0b0b0b; padding:32px 16px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; background:#111; border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.45); border:1px solid #1f1f1f;">
-            <tr>
-              <td style="padding:26px 28px; background:linear-gradient(135deg, rgba(255,176,32,0.18), rgba(252,128,25,0.06)); border-bottom:1px solid rgba(255,176,32,0.2);">
-                <div style="font-size:20px; font-weight:700; letter-spacing:0.5px; color:#ffb020;">TomoX</div>
-                <div style="margin-top:6px; font-size:13px; letter-spacing:0.18em; text-transform:uppercase; color:#f97316;">Verification</div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:28px;">
-                <h1 style="margin:0 0 10px; font-size:24px; font-weight:600; color:#f8f8f8;">Your one-time code</h1>
-                <p style="margin:0 0 20px; font-size:15px; line-height:1.6; color:#d1d5db;">
-                  Use the code below to finish signing in to TomoX. This code is valid for 10 minutes.
-                </p>
-                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto; border-collapse:separate; border-spacing:10px;">
-                  <tr>
-                    ${otpBoxes}
-                  </tr>
-                </table>
-                <p style="margin:20px 0 0; font-size:13px; line-height:1.6; color:#9ca3af;">
-                  If you did not request this code, you can safely ignore this email.
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:18px 28px 26px; border-top:1px solid #1f1f1f; color:#9ca3af; font-size:12px; text-align:center;">
-                <a href="${CUSTOMER_APP_URL}" style="color:#ffb020;text-decoration:none;font-weight:600;">Open TomoX Customer App</a><br/>
-                Need help? Reply to this email and our team will get back to you.
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
-`;
+  const html = `\n<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>TomoX Verification Code</title>\n  </head>\n  <body style="margin:0; padding:0; background:#0b0b0b; color:#f8f8f8; font-family: 'Space Grotesk', 'Inter', Arial, sans-serif;">\n    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0b0b0b; padding:32px 16px;">\n      <tr>\n        <td align="center">\n          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; background:#111; border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.45); border:1px solid #1f1f1f;">\n            <tr>\n              <td style="padding:26px 28px; background:linear-gradient(135deg, rgba(255,176,32,0.18), rgba(252,128,25,0.06)); border-bottom:1px solid rgba(255,176,32,0.2);">\n                <div style="font-size:20px; font-weight:700; letter-spacing:0.5px; color:#ffb020;">TomoX</div>\n                <div style="margin-top:6px; font-size:13px; letter-spacing:0.18em; text-transform:uppercase; color:#f97316;">Verification</div>\n              </td>\n            </tr>\n            <tr>\n              <td style="padding:28px;">\n                <h1 style="margin:0 0 10px; font-size:24px; font-weight:600; color:#f8f8f8;">Your one-time code</h1>\n                <p style="margin:0 0 20px; font-size:15px; line-height:1.6; color:#d1d5db;">\n                  Use the code below to finish signing in to TomoX. This code is valid for 10 minutes.\n                </p>\n                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto; border-collapse:separate; border-spacing:10px;">\n                  <tr>\n                    ${otpBoxes}\n                  </tr>\n                </table>\n                <p style="margin:20px 0 0; font-size:13px; line-height:1.6; color:#9ca3af;">\n                  If you did not request this code, you can safely ignore this email.\n                </p>\n              </td>\n            </tr>\n            <tr>\n              <td style="padding:18px 28px 26px; border-top:1px solid #1f1f1f; color:#9ca3af; font-size:12px; text-align:center;">\n                <a href="${CUSTOMER_APP_URL}" style="color:#ffb020;text-decoration:none;font-weight:600;">Open TomoX Customer App</a><br/>\n                Need help? Reply to this email and our team will get back to you.\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>\n`;
 
   const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
   const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
