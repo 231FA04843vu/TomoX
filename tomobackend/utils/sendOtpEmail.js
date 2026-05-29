@@ -65,6 +65,28 @@ const getTransporter = async () => {
 };
 
 const sendOtpEmail = async (to, otp) => {
+  const SENDGRID_KEY = (process.env.SENDGRID_API_KEY || "").trim();
+  const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
+  const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
+
+  // If SendGrid API key is present, prefer API send (bypasses SMTP egress restrictions)
+  if (SENDGRID_KEY) {
+    try {
+      if (!sgMail) sgMail = require("@sendgrid/mail");
+      sgMail.setApiKey(SENDGRID_KEY);
+      const subject = "Your TomoX verification code";
+      const text = `Your TomoX verification code is ${otp}.\n\nThis code will expire in 10 minutes. If you did not request this, please ignore this email.`;
+      const html = `
+        <!doctype html><html><body><p>Your TomoX verification code is <strong>${otp}</strong>.</p><p>This code will expire in 10 minutes.</p></body></html>`;
+      await sgMail.send({ to, from: `TomoX <${EMAIL_FROM}>`, subject, text, html });
+      console.log(`[OTP SendGrid] Email sent to ${to}`);
+      return;
+    } catch (err) {
+      console.error("[OTP SendGrid] Failed to send via SendGrid:", err && err.message ? err.message : err);
+      // fall through to SMTP attempt
+    }
+  }
+
   let currentTransporter;
   try {
     currentTransporter = await getTransporter();
@@ -74,16 +96,7 @@ const sendOtpEmail = async (to, otp) => {
   }
 
   const subject = "Your TomoX verification code";
-  const text = `
-Your TomoX verification code is ${otp}.
-
-This code will expire in 10 minutes. If you did not request this, please ignore this email.
-
-Customer app: ${CUSTOMER_APP_URL}
-
-Thanks,
-TomoX Team
-`;
+  const text = `Your TomoX verification code is ${otp}.\n\nThis code will expire in 10 minutes. If you did not request this, please ignore this email.\n\nCustomer app: ${CUSTOMER_APP_URL}\n\nThanks,\nTomoX Team`;
 
   const otpChars = String(otp).padStart(4, "0").slice(-4).split("");
   const otpBoxes = otpChars
