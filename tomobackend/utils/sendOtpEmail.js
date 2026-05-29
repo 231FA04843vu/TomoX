@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const path = require("path");
+const dns = require("dns");
 require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
@@ -7,26 +8,39 @@ const OTP_EMAIL_TIMEOUT_MS = 20000;
 
 let transporter = null;
 
-const getTransporter = () => {
+// Resolve SMTP host to IPv4 when possible to avoid ENETUNREACH/IPv6 timeouts on some hosts.
+const getTransporter = async () => {
   if (transporter) return transporter;
-  
+
   const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
   const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
   const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
   const SMTP_HOST = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
   const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
   const SMTP_SECURE = String(process.env.SMTP_SECURE || SMTP_PORT === 465).toLowerCase() === "true";
-  
+
   console.log("[OTP Transporter] Initializing transporter");
   console.log("[OTP Transporter] EMAIL_USER set:", !!EMAIL_USER);
   console.log("[OTP Transporter] EMAIL_PASS set:", !!EMAIL_PASS);
-  
+
   if (!EMAIL_USER || !EMAIL_PASS) {
     throw new Error("EMAIL_USER and EMAIL_PASS must be set in environment variables");
   }
 
+  // Try to resolve an IPv4 address for the SMTP host to avoid IPv6 routing issues on some platforms.
+  let connectHost = SMTP_HOST;
+  try {
+    const lookup = await dns.promises.lookup(SMTP_HOST, { family: 4 });
+    if (lookup && lookup.address) {
+      connectHost = lookup.address;
+      console.log(`[OTP Transporter] Resolved ${SMTP_HOST} -> ${connectHost} (ipv4)`);
+    }
+  } catch (err) {
+    console.log(`[OTP Transporter] IPv4 lookup failed for ${SMTP_HOST}, falling back to hostname:`, err && err.message ? err.message : err);
+  }
+
   transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
+    host: connectHost,
     port: SMTP_PORT,
     secure: SMTP_SECURE,
     connectionTimeout: OTP_EMAIL_TIMEOUT_MS,
@@ -36,12 +50,16 @@ const getTransporter = () => {
       user: EMAIL_USER,
       pass: EMAIL_PASS,
     },
+    tls: {
+      // If we used an IPv4 literal for host, set servername so TLS SNI uses the real host name.
+      servername: SMTP_HOST,
+    },
   });
 
   transporter.verify().catch((err) => {
     console.error("[OTP Transporter] Verification failed:", err && err.message ? err.message : err);
   });
-  
+
   console.log("[OTP Transporter] Transporter created successfully");
   return transporter;
 };
@@ -49,9 +67,9 @@ const getTransporter = () => {
 const sendOtpEmail = async (to, otp) => {
   let currentTransporter;
   try {
-    currentTransporter = getTransporter();
+    currentTransporter = await getTransporter();
   } catch (err) {
-    console.error("[OTP Email] Failed to get transporter:", err.message);
+    console.error("[OTP Email] Failed to get transporter:", err && err.message ? err.message : err);
     throw err;
   }
 
