@@ -6,7 +6,7 @@ A modern, responsive web application for ordering food from restaurants with rea
 
 **TomoApp** is the customer-facing frontend application built with React and Vite. It provides a seamless food ordering experience with features like:
 
-- 🔐 User authentication (Email-based OTP verification)
+- 🔐 User authentication (email OTP verification)
 - 🍔 Browse restaurants and menu items
 - 🛒 Shopping cart management
 - 📦 Real-time order tracking with Socket.io
@@ -61,7 +61,7 @@ tomoapp/
    ```
    Update `.env` with your backend API URL:
    ```
-   VITE_API=http://localhost:5000
+   VITE_API_COMPANY=http://localhost:5000
    ```
 
 ### Development
@@ -89,7 +89,7 @@ npm run preview
 
 ### 1. **Authentication**
 - Sign up with email
-- OTP verification (4-digit code sent to email)
+- Firebase phone verification (6-digit SMS code)
 - Login with credentials
 - Password reset functionality
 
@@ -124,7 +124,7 @@ npm run preview
 ## 🔐 Security Features
 
 - JWT-based authentication
-- Email verification via OTP
+- Firebase phone verification via OTP
 - Secure password hashing
 - Protected API endpoints
 - CORS configuration
@@ -148,9 +148,10 @@ The application is deployed on **Netlify**:
 ## 🐛 Troubleshooting
 
 ### OTP not received?
-- Check your spam/junk folder
-- Verify email address is correct
-- Wait 2-3 minutes for email delivery
+- Confirm Firebase Phone Auth is enabled in the Firebase console
+- Add your domain to Firebase Authentication authorized domains
+- Use a Firebase test phone number during local development
+- Make sure the phone number is in E.164 format if you type it manually
 
 ### Slow performance?
 - Clear browser cache
