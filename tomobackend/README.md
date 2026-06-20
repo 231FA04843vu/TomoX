@@ -6,7 +6,7 @@ A robust Node.js/Express backend API for the TomoApp food delivery platform with
 
 **TomoBackend** is the backend server powering the TomoApp ecosystem. It provides RESTful APIs for:
 
-- 🔐 User authentication and authorization (JWT + OTP)
+- 🔐 User authentication and authorization (JWT + email OTP verification)
 - 👨‍🍳 Restaurant and menu management
 - 📦 Order processing and real-time tracking
 - 🛒 Cart and checkout operations
@@ -22,7 +22,7 @@ A robust Node.js/Express backend API for the TomoApp food delivery platform with
 ```
 tomobackend/
 ├── controllers/          # Business logic for each feature
-│   ├── userAuthController.js      # User signup, login, OTP
+│   ├── userAuthController.js      # User signup, login, phone verification
 │   ├── restaurantController.js    # Restaurant operations
 │   ├── orderController.js         # Order management
 │   ├── supportController.js       # Support tickets
@@ -86,10 +86,15 @@ tomobackend/
    Update `.env` with your credentials:
    ```env
    PORT=5000
-   MONGODB_URI=mongodb://your-mongodb-url
+   MONGO_URI=mongodb://your-mongodb-url
    JWT_SECRET=your-jwt-secret-key
+   CORS_ORIGINS=https://your-tomoapp.netlify.app,https://your-customercare.netlify.app,https://your-companyadmin.netlify.app
    EMAIL_USER=your-gmail@gmail.com
    EMAIL_PASS=your-gmail-app-password
+   EMAIL_FROM=your-gmail@gmail.com
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=465
+   SMTP_SECURE=true
    ```
 
 ### Development
@@ -113,8 +118,8 @@ npm start
 ### Authentication Flow
 
 1. **User Signup**
-   - POST `/api/signup/otp` → Send OTP to email
-   - POST `/api/signup` → Verify OTP & create account
+   - Firebase Phone Auth on the client sends the SMS code
+   - POST `/api/signup` → Verify Firebase token & create account
    - Response: JWT token + user data
 
 2. **User Login**
@@ -122,13 +127,12 @@ npm start
    - Response: JWT token
 
 3. **Password Reset**
-   - POST `/api/forgot-password/otp` → Send reset OTP
-   - POST `/api/reset-password` → Verify OTP & update password
+   - Firebase Phone Auth on the client sends the SMS code
+   - POST `/api/reset-password` → Verify Firebase token & update password
 
 ### Key API Endpoints
 
 #### Users
-- `POST /api/signup/otp` - Request signup OTP
 - `POST /api/signup` - Complete signup
 - `POST /api/login` - User login
 - `GET /api/profile` - Get user profile
@@ -272,9 +276,10 @@ Currently deployed on **Render**:
 # Server
 PORT=5000
 NODE_ENV=development
+CORS_ORIGINS=https://your-tomoapp.netlify.app,https://your-customercare.netlify.app,https://your-companyadmin.netlify.app
 
 # Database
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/dbname
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/dbname
 
 # JWT
 JWT_SECRET=your-super-secret-key-change-in-production
@@ -282,6 +287,10 @@ JWT_SECRET=your-super-secret-key-change-in-production
 # Email (Gmail SMTP)
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-gmail-app-password
+EMAIL_FROM=your-email@gmail.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
 
 # Frontend URL
 FRONTEND_URL=http://localhost:5173

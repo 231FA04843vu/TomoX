@@ -6,14 +6,25 @@ const nodemailer = require("nodemailer");
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
 const VENDOR_APP_URL = "https://tvendor.netlify.app";
 
+const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
+const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
+const SMTP_HOST = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
+const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
+const SMTP_SECURE = String(process.env.SMTP_SECURE || SMTP_PORT === 465).toLowerCase() === "true";
+
 // 🔐 Email transporter setup
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const transporter = EMAIL_USER && EMAIL_PASS
+  ? nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
+      },
+    })
+  : null;
 
 // ✅ Approve Vendor Route
 router.post("/approve/:id", async (req, res) => {
@@ -42,12 +53,14 @@ router.post("/approve/:id", async (req, res) => {
     await newVendor.save();
     await PendingVendor.findByIdAndDelete(pendingVendor._id);
 
-    // 📧 Send approval email
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: pendingVendor.email,
-      subject: "🎉 Vendor Approved - TomoX",
-      html: `
+    // 📧 Send approval email when SMTP is available, but do not fail the approval itself.
+    if (transporter) {
+      try {
+        await transporter.sendMail({
+          from: EMAIL_FROM,
+          to: pendingVendor.email,
+          subject: "🎉 Vendor Approved - TomoX",
+          html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border-radius: 8px; background-color: #f9f9f9; color: #333;">
           <h2 style="color: #28a745;">🎉 Congratulations, ${pendingVendor.name}!</h2>
           <p>Your request for <strong>vendor registration</strong> with <strong>TomoX</strong> has been <span style="color: #28a745;"><strong>successfully approved</strong></span>.</p>
@@ -76,7 +89,13 @@ router.post("/approve/:id", async (req, res) => {
         </div>
 
       `,
-    });
+        });
+      } catch (emailError) {
+        console.error("Vendor approval email failed:", emailError && emailError.message ? emailError.message : emailError);
+      }
+    } else {
+      console.warn("Email transporter not configured; skipping vendor approval email.");
+    }
 
     res.json({ message: "Vendor approved and notified via email." });
   } catch (err) {
@@ -93,11 +112,13 @@ router.post("/reject/:id", async (req, res) => {
       return res.status(404).json({ error: "Vendor not found" });
     }
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: pendingVendor.email,
-      subject: "❌ Vendor Application Rejected - TomoX",
-      html: `
+    if (transporter) {
+      try {
+        await transporter.sendMail({
+          from: EMAIL_FROM,
+          to: pendingVendor.email,
+          subject: "❌ Vendor Application Rejected - TomoX",
+          html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #fff7f7; border: 1px solid #ffd5d5; border-radius: 8px;">
           <h2 style="color: #d9534f;">❌ Application Rejected</h2>
           <p>Dear ${pendingVendor.name},</p>
@@ -109,7 +130,13 @@ router.post("/reject/:id", async (req, res) => {
         </div>
 
       `,
-    });
+        });
+      } catch (emailError) {
+        console.error("Vendor rejection email failed:", emailError && emailError.message ? emailError.message : emailError);
+      }
+    } else {
+      console.warn("Email transporter not configured; skipping vendor rejection email.");
+    }
 
     await PendingVendor.findByIdAndDelete(pendingVendor._id);
 
