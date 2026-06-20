@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "prod": "node server.js",
-    "cleanup": "node cleanupResolvedTickets.js"
+    "cleanup": "node utils/cleanupResolvedTickets.js"
   },
   "keywords": [],
   "author": "",
