@@ -1,0 +1,337 @@
+.support-page-wrap {
+  width: 100%;
+  animation: supportFadeIn 0.4s ease-out;
+}
+
+@keyframes supportFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.support-form-modern {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #f1f1f6;
+  padding: 32px;
+  color: #282c3f;
+  font-family: 'ProximaNova', 'Inter', sans-serif;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.support-form-modern:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+
+/* Subtle gradient top border for wow factor */
+.support-form-modern::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #fc8019 0%, #ff5200 100%);
+}
+
+.support-header {
+  margin-bottom: 32px;
+}
+
+.support-header h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  color: #282c3f;
+}
+
+.support-header p {
+  font-size: 15px;
+  color: #7e808c;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.support-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.support-full-width {
+  grid-column: 1 / -1;
+}
+
+.support-form-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3d4152;
+  gap: 8px;
+}
+
+.support-form-grid input,
+.support-form-grid textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #d4d5d9;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #282c3f;
+  background-color: #fff;
+  transition: all 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.support-form-grid input::placeholder,
+.support-form-grid textarea::placeholder {
+  color: #93959f;
+  font-weight: 400;
+}
+
+.support-form-grid input:focus,
+.support-form-grid textarea:focus {
+  border-color: #fc8019;
+  box-shadow: 0 0 0 3px rgba(252, 128, 25, 0.1);
+}
+
+.support-form-grid textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.support-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.support-btn-primary {
+  background: #fc8019;
+  color: #fff;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  flex: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.support-btn-primary:hover {
+  background: #e57317;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(252, 128, 25, 0.3);
+}
+
+.support-btn-primary:active {
+  transform: translateY(0);
+}
+
+.support-btn-secondary {
+  background: #fff;
+  color: #fc8019;
+  border: 2px solid #fc8019;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.support-btn-secondary:hover:not(:disabled) {
+  background: rgba(252, 128, 25, 0.05);
+}
+
+.support-btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: #d4d5d9;
+  color: #93959f;
+}
+
+.support-ticket-id {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f4f4f5;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 15px;
+  color: #282c3f;
+  border: 1px dashed #d4d5d9;
+}
+
+.support-status-success {
+  margin-top: 16px;
+  color: #60b246;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px;
+  background: rgba(96, 178, 70, 0.1);
+  border-radius: 8px;
+}
+
+.support-status-error {
+  margin-top: 16px;
+  color: #db2828;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px;
+  background: rgba(219, 40, 40, 0.1);
+  border-radius: 8px;
+}
+
+/* Status View Styles */
+.support-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.support-status-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.support-status-pill {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.support-status-pill.raised {
+  background: #fff3e0;
+  color: #ff9800;
+}
+.support-status-pill.pending {
+  background: #e3f2fd;
+  color: #2196f3;
+}
+.support-status-pill.resolved {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.support-status-card {
+  background: #fafafa;
+  border: 1px solid #f1f1f6;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 40px;
+}
+
+.support-status-card p {
+  font-size: 16px;
+  color: #3d4152;
+  margin: 0 0 16px 0;
+  font-weight: 500;
+}
+
+.support-status-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #7e808c;
+  font-weight: 500;
+}
+
+.support-status-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+  position: relative;
+  padding: 0 10px;
+}
+
+.support-stage-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.support-stage-item:last-child {
+  flex: 0 0 auto;
+}
+
+.support-stage-dot {
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border: 3px solid #d4d5d9;
+  border-radius: 50%;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.support-stage-dot.completed {
+  border-color: #60b246;
+  background: #60b246;
+}
+
+.support-stage-dot.active {
+  border-color: #fc8019;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(252, 128, 25, 0.2);
+}
+
+.support-stage-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #7e808c;
+  text-align: center;
+  width: max-content;
+}
+
+.support-stage-dot.completed + .support-stage-label {
+  color: #60b246;
+}
+.support-stage-dot.active + .support-stage-label {
+  color: #fc8019;
+}
+
+.support-stage-line {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #d4d5d9;
+  z-index: 1;
+}
+
+.support-stage-line.completed {
+  background: #60b246;
+}
+
+@media (max-width: 600px) {
+  .support-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .support-actions {
+    flex-direction: column;
+  }
+  .support-btn-primary, .support-btn-secondary {
+    width: 100%;
+  }
+}

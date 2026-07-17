@@ -3,23 +3,22 @@ import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import BannerSlider from "./components/BannerSlider";
+
 import CategoryShortcuts from "./components/CategoryShortcuts";
 import RestaurantCard from "./components/RestaurantCard";
 import RestaurantMenu from "./components/RestaurantMenu";
 import SupportForm from "./components/SupportForm";
 import SupportViewer from "./components/SupportViewer";
-import SearchResultsModal from "./components/SearchResultsModal";
+import Search from "./pages/Search";
 import PageLoader from "./components/PageLoader";
 import Cart from "./pages/Cart";
 import Help from "./pages/Help";
 import Account from "./pages/Account";
 import Offers from "./pages/Offers";
+import AuthDrawer from "./components/AuthDrawer";
 import { normalizeAssetUrl } from "./utils/url";
 
-// Lazy load less critical routes with prefetching hints
 const Checkout = lazy(() => import(/* webpackPrefetch: true */ "./pages/Checkout"));
-const Auth = lazy(() => import("./pages/Auth"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -63,6 +62,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 200); // Debounce search with 200ms delay
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -169,7 +169,6 @@ function App() {
       lastRefreshTime = now;
       refreshUser();
     };
-    
     const handleVisibility = () => {
       if (document.visibilityState !== "visible") return;
       const now = Date.now();
@@ -177,12 +176,17 @@ function App() {
       lastRefreshTime = now;
       refreshUser();
     };
+
+    const handleOpenAuth = () => setIsAuthDrawerOpen(true);
     
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("tomo:open-auth", handleOpenAuth);
+    
     return () => {
       window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("tomo:open-auth", handleOpenAuth);
     };
   }, [refreshUser]);
 
@@ -263,7 +267,7 @@ function App() {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (location.pathname !== "/" && searchQuery) {
+    if (location.pathname !== "/" && location.pathname !== "/search" && searchQuery) {
       setSearchQuery("");
     }
   }, [location.pathname, searchQuery]);
@@ -316,10 +320,9 @@ function App() {
     return { normalizedQuery: normalized, searchMeta: meta, queryTokens: tokens };
   }, [debouncedSearchQuery, buildSearchMeta]);
 
-  const isSearching = location.pathname === "/" && normalizedQuery.length > 0;
+  const isSearchPage = location.pathname === "/search";
+  const isSearching = (location.pathname === "/" || isSearchPage) && normalizedQuery.length > 0;
   const isHomePage = location.pathname === "/";
-  const showPageBackButton =
-    location.pathname !== "/" && location.pathname !== "/sign-in";
 
   const keywordMatch = useCallback((text) =>
     queryTokens.length === 0
@@ -446,7 +449,7 @@ function App() {
 
   // Memoized filtering results
   const { filteredRestaurants, matchingItems } = useMemo(() => {
-    if (!isHomePage) {
+    if (!isHomePage && !isSearchPage) {
       return { filteredRestaurants: restaurants, matchingItems: [] };
     }
 
@@ -489,7 +492,7 @@ function App() {
       : restaurants;
 
     return { filteredRestaurants: filtered, matchingItems: items };
-  }, [restaurants, normalizedQuery, keywordMatch, matchItem, isHomePage]);
+  }, [restaurants, normalizedQuery, keywordMatch, matchItem, isHomePage, isSearchPage]);
 
   const buildSuggestions = useCallback((list, query) => {
     const items = [];
@@ -588,100 +591,39 @@ function App() {
     () => (isSearching ? buildOffers(coupons) : []),
     [isSearching, coupons, buildOffers]
   );
-  const homeSliderItems = useMemo(() => {
-    if (Array.isArray(banners) && banners.length > 0) {
-      return banners;
-    }
-    return coupons;
-  }, [banners, coupons]);
+
 
   return (
     <div className="app-container">
-      {/* Coupon Announcement Banner */}
-      {coupons.length > 0 && location.pathname === "/" && (
-        <div className="stunning-announcement-banner">
-          <div className="announcement-shine"></div>
-          <div className="announcement-ticker">
-            <div className="announcement-track">
-              {coupons.map((coupon, index) => {
-                const discount = coupon.discountType === "percentage"
-                  ? `${coupon.discountValue}% OFF`
-                  : `₹${coupon.discountValue} OFF`;
-
-                return (
-                  <div key={coupon._id || index} className="announcement-item">
-                    <div className="announcement-custom-icon icon-sale">
-                      <span className="icon-inner"></span>
-                    </div>
-                    <span className="announcement-title">{coupon.code}</span>
-                    <span className="announcement-separator">•</span>
-                    <span className="announcement-message">
-                      {coupon.description || discount}
-                    </span>
-                  </div>
-                );
-              })}
-              {coupons.map((coupon, index) => {
-                const discount = coupon.discountType === "percentage"
-                  ? `${coupon.discountValue}% OFF`
-                  : `₹${coupon.discountValue} OFF`;
-
-                return (
-                  <div key={`dup-${coupon._id || index}`} className="announcement-item">
-                    <div className="announcement-custom-icon icon-sale">
-                      <span className="icon-inner"></span>
-                    </div>
-                    <span className="announcement-title">{coupon.code}</span>
-                    <span className="announcement-separator">•</span>
-                    <span className="announcement-message">
-                      {coupon.description || discount}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isHomePage && (
+      {/* Header shown on all pages except secure checkout cart */}
+      {location.pathname !== "/cart" && (
         <Header
           user={user}
           onLogout={() => {
             localStorage.removeItem("token");
             localStorage.removeItem("tomo.cart.v1");
             setUser(null);
+            navigate("/");
           }}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          searchQuery={isHomePage || isSearchPage ? searchQuery : ""}
+          onSearchChange={isHomePage || isSearchPage ? setSearchQuery : () => {}}
         />
       )}
 
-      {showPageBackButton && (
-        <div className="page-top-effect">
-          <button
-            type="button"
-            className="back-button"
-            onClick={() => navigate(-1)}
-            aria-label="Go back"
-          >
-            Back
-          </button>
-        </div>
-      )}
-
-      <SearchResultsModal
-        isOpen={isSearching}
-        query={searchQuery.trim()}
-        suggestions={suggestions}
-        restaurants={filteredRestaurants}
-        items={matchingItems}
-        offers={offers}
-        onClose={() => setSearchQuery("")}
-        onSuggestionClick={(value) => setSearchQuery(value)}
-      />
-
       <Routes>
+        <Route
+          path="/search"
+          element={
+            <Search
+              query={searchQuery}
+              setQuery={setSearchQuery}
+              suggestions={suggestions}
+              restaurants={filteredRestaurants}
+              items={matchingItems}
+              offers={offers}
+            />
+          }
+        />
         <Route
           path="/"
           element={
@@ -690,21 +632,30 @@ function App() {
                 <PageLoader />
               ) : !isSearching ? (
                 <>
+                  {/* "What's on your mind?" category row */}
                   <CategoryShortcuts />
-                  <BannerSlider offers={homeSliderItems} />
-                  <div className="restaurant-section">
-                    {filteredRestaurants.map((res) => (
-                      <RestaurantCard
-                        key={res._id}
-                        restaurant={res}
-                        user={user}
-                      />
-                    ))}
-                    {filteredRestaurants.length === 0 && (
-                      <div className="restaurant-empty">
-                        No restaurants match your search.
-                      </div>
-                    )}
+
+
+                  {/* Top Restaurants section */}
+                  <div className="restaurant-section-wrapper">
+                    <div className="restaurant-section-divider" />
+                    <div className="section-header">
+                      <h2 className="section-title">Top Restaurants near you</h2>
+                    </div>
+                    <div className="restaurant-section">
+                      {filteredRestaurants.map((res) => (
+                        <RestaurantCard
+                          key={res._id}
+                          restaurant={res}
+                          user={user}
+                        />
+                      ))}
+                      {filteredRestaurants.length === 0 && (
+                        <div className="restaurant-empty" style={{ gridColumn: "1 / -1" }}>
+                          No restaurants match your search.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </>
               ) : null}
@@ -715,22 +666,18 @@ function App() {
           path="/restaurant/:id"
           element={<RestaurantMenu user={user} />}
         />
-        {user && (
-          <>
-            <Route
-              path="/cart"
-              element={<Cart user={user} />}
-            />
-            <Route
-              path="/checkout"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <Checkout user={user} />
-                </Suspense>
-              }
-            />
-          </>
-        )}
+        <Route
+          path="/cart"
+          element={<Cart user={user} />}
+        />
+        <Route
+          path="/checkout"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Checkout user={user} />
+            </Suspense>
+          }
+        />
         <Route
           path="/help"
           element={<Help user={user} />}
@@ -770,14 +717,6 @@ function App() {
         <Route path="/support" element={<SupportForm />} />
         <Route path="/company/support" element={<SupportViewer />} />
         <Route
-          path="/sign-in"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Auth onAuth={setUser} />
-            </Suspense>
-          }
-        />
-        <Route
           path="*"
           element={
             <div style={{ padding: "100px", textAlign: "center" }}>
@@ -788,7 +727,13 @@ function App() {
         />
       </Routes>
 
-      <Footer />
+      {isHomePage && <Footer />}
+
+      <AuthDrawer 
+        isOpen={isAuthDrawerOpen} 
+        onClose={() => setIsAuthDrawerOpen(false)} 
+        onAuth={setUser} 
+      />
     </div>
   );
 }

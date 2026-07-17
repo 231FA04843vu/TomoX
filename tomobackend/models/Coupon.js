@@ -15,7 +15,9 @@ const couponSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   usageLimit: { type: Number, default: null },
   usedCount: { type: Number, default: 0 },
+  title: { type: String, default: '' },
   description: { type: String, default: '' },
+  termsAndConditions: { type: [String], default: [] },
   couponType: { 
     type: String, 
     enum: ['flash', 'hot', 'limited', 'welcome', 'save', 'delivery', 'mega', 'standard'],

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/offers.css";
 
 const API_COMPANY = import.meta.env.VITE_API_COMPANY;
 

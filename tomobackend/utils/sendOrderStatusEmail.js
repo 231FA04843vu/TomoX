@@ -1,27 +1,5 @@
-const nodemailer = require("nodemailer");
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
-
-const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
-const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
-const SMTP_HOST = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
-const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
-const SMTP_SECURE = String(process.env.SMTP_SECURE || SMTP_PORT === 465).toLowerCase() === "true";
+const { sendMail, EMAIL_FROM } = require("./emailTransport");
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
-
-let transporter = null;
-if (EMAIL_USER && EMAIL_PASS) {
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_SECURE,
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS,
-    },
-  });
-}
 
 const statusMeta = {
   accepted: {
@@ -63,7 +41,7 @@ const sendOrderStatusEmail = async ({
   restaurantName,
   updatedAt,
 }) => {
-  if (!transporter || !email) return;
+  if (!email) return;
 
   const normalized = (status || "").toLowerCase();
   const meta = statusMeta[normalized];
@@ -160,7 +138,7 @@ Track order in your TomoX account: ${CUSTOMER_APP_URL}
 `;
 
   try {
-    await transporter.sendMail({
+    await sendMail({
       from: `"TomoX Orders" <${EMAIL_FROM}>`,
       to: email,
       subject,

@@ -1,55 +1,9 @@
 const nodemailer = require("nodemailer");
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
-
-const CUSTOMER_APP_URL = "https://tomox.netlify.app";
+const { sendMail, EMAIL_FROM } = require("./emailTransport");
 const OTP_EMAIL_TIMEOUT_MS = 20000;
-
-let transporter = null;
-
-const getTransporter = () => {
-  if (transporter) return transporter;
-
-  const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-  const EMAIL_PASS = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
-  const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
-  const SMTP_HOST = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
-  const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
-  const SMTP_SECURE = String(process.env.SMTP_SECURE || SMTP_PORT === 465).toLowerCase() === "true";
-
-  console.log("[OTP Transporter] Initializing transporter");
-  console.log("[OTP Transporter] EMAIL_USER set:", !!EMAIL_USER);
-  console.log("[OTP Transporter] EMAIL_PASS set:", !!EMAIL_PASS);
-
-  if (!EMAIL_USER || !EMAIL_PASS) {
-    throw new Error("EMAIL_USER and EMAIL_PASS must be set in environment variables");
-  }
-
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_SECURE,
-    connectionTimeout: OTP_EMAIL_TIMEOUT_MS,
-    greetingTimeout: OTP_EMAIL_TIMEOUT_MS,
-    socketTimeout: OTP_EMAIL_TIMEOUT_MS,
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS,
-    },
-  });
-
-  transporter.verify().catch((err) => {
-    console.error("[OTP Transporter] Verification failed:", err && err.message ? err.message : err);
-  });
-
-  console.log("[OTP Transporter] Transporter created successfully");
-  return transporter;
-};
 
 const sendOtpEmail = async (to, otp) => {
   const currentTransporter = getTransporter();
-
-  const subject = "Your TomoX verification code";
   const text = `\nYour TomoX verification code is ${otp}.\n\nThis code will expire in 10 minutes. If you did not request this, please ignore this email.\n\nCustomer app: ${CUSTOMER_APP_URL}\n\nThanks,\nTomoX Team\n`;
 
   const otpChars = String(otp).padStart(4, "0").slice(-4).split("");
@@ -61,9 +15,7 @@ const sendOtpEmail = async (to, otp) => {
 
   const html = `\n<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>TomoX Verification Code</title>\n  </head>\n  <body style="margin:0; padding:0; background:#0b0b0b; color:#f8f8f8; font-family: 'Space Grotesk', 'Inter', Arial, sans-serif;">\n    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0b0b0b; padding:32px 16px;">\n      <tr>\n        <td align="center">\n          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; background:#111; border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.45); border:1px solid #1f1f1f;">\n            <tr>\n              <td style="padding:26px 28px; background:linear-gradient(135deg, rgba(255,176,32,0.18), rgba(252,128,25,0.06)); border-bottom:1px solid rgba(255,176,32,0.2);">\n                <div style="font-size:20px; font-weight:700; letter-spacing:0.5px; color:#ffb020;">TomoX</div>\n                <div style="margin-top:6px; font-size:13px; letter-spacing:0.18em; text-transform:uppercase; color:#f97316;">Verification</div>\n              </td>\n            </tr>\n            <tr>\n              <td style="padding:28px;">\n                <h1 style="margin:0 0 10px; font-size:24px; font-weight:600; color:#f8f8f8;">Your one-time code</h1>\n                <p style="margin:0 0 20px; font-size:15px; line-height:1.6; color:#d1d5db;">\n                  Use the code below to finish signing in to TomoX. This code is valid for 10 minutes.\n                </p>\n                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto; border-collapse:separate; border-spacing:10px;">\n                  <tr>\n                    ${otpBoxes}\n                  </tr>\n                </table>\n                <p style="margin:20px 0 0; font-size:13px; line-height:1.6; color:#9ca3af;">\n                  If you did not request this code, you can safely ignore this email.\n                </p>\n              </td>\n            </tr>\n            <tr>\n              <td style="padding:18px 28px 26px; border-top:1px solid #1f1f1f; color:#9ca3af; font-size:12px; text-align:center;">\n                <a href="${CUSTOMER_APP_URL}" style="color:#ffb020;text-decoration:none;font-weight:600;">Open TomoX Customer App</a><br/>\n                Need help? Reply to this email and our team will get back to you.\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>\n`;
 
-  const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-  const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
-  await currentTransporter.sendMail({
+  await sendMail({
     from: `"TomoX" <${EMAIL_FROM}>`,
     to,
     subject,

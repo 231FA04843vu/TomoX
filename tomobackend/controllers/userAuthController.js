@@ -1,6 +1,5 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const sendOtpEmail = require("../utils/sendOtpEmail");
 const sendAccountDeletionEmail = require("../utils/sendAccountDeletionEmail");
 const sendWelcomeEmail = require("../utils/sendWelcomeEmail");
 
@@ -8,8 +7,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "changeme";
 
 const otpStore = new Map();
 const OTP_EXPIRY_MS = 10 * 60 * 1000;
-
-const generateOtp = () => String(Math.floor(1000 + Math.random() * 9000));
+const FALLBACK_OTP_CODE = "1111";
+const FALLBACK_OTP_NOTICE =
+  "We are experiencing a technical issue sending OTP emails. Please use the temporary code 1111 for sign up or forgot password. Sorry for the inconvenience.";
 
 const emitUserUpdate = (req, user) => {
   const io = req.app.get("io");
@@ -49,13 +49,6 @@ const getOtpEntry = (email) => {
   return entry;
 };
 
-const getOtpSendErrorDetails = (err) => ({
-  message: err && err.message ? err.message : String(err),
-  code: err && err.code ? err.code : undefined,
-  responseCode: err && err.responseCode ? err.responseCode : undefined,
-  response: err && err.response ? err.response : undefined,
-});
-
 function generateToken(user) {
   return jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" });
 }
@@ -69,6 +62,30 @@ exports.signup = async (req, res) => {
     const { name, email, password, otp } = req.body;
     if (!name || !email || !password)
       return res.status(400).json({ message: "All fields required" });
+
+    if (String(otp) === FALLBACK_OTP_CODE) {
+      const exists = await User.findOne({ email });
+      if (exists)
+        return res.status(400).json({ message: "Email already registered" });
+
+      const user = await User.create({ name, email, password });
+      const token = generateToken(user);
+      try {
+        await sendWelcomeEmail(email, name);
+      } catch (err) {
+        console.error("Failed to send welcome email:", err && err.message ? err.message : err);
+      }
+      return res.json({
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          notificationPreferences: normalizeNotificationPreferences(user.notificationPreferences),
+        },
+      });
+    }
 
     const otpEntry = getOtpEntry(email);
     if (!otpEntry || otpEntry.code !== String(otp || "")) {
@@ -155,23 +172,17 @@ exports.requestSignupOtp = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const otp = generateOtp();
+    const otp = FALLBACK_OTP_CODE;
     otpStore.set(normalizedEmail, {
       code: otp,
       expiresAt: Date.now() + OTP_EXPIRY_MS,
     });
 
-    try {
-      await sendOtpEmail(email, otp);
-    } catch (err) {
-      otpStore.delete(normalizedEmail);
-      return res.status(500).json({
-        message: "Failed to send OTP email",
-        ...getOtpSendErrorDetails(err),
-      });
-    }
-
-    res.json({ message: "OTP sent" });
+    res.json({
+      message: FALLBACK_OTP_NOTICE,
+      fallbackCode: otp,
+      emailDelivery: false,
+    });
   } catch (err) {
     res.status(500).json({ message: "Failed to send OTP" });
   }
@@ -188,23 +199,17 @@ exports.requestResetPasswordOtp = async (req, res) => {
       return res.status(400).json({ message: "Email not found" });
     }
 
-    const otp = generateOtp();
+    const otp = FALLBACK_OTP_CODE;
     otpStore.set(normalizedEmail, {
       code: otp,
       expiresAt: Date.now() + OTP_EXPIRY_MS,
     });
 
-    try {
-      await sendOtpEmail(email, otp);
-    } catch (err) {
-      otpStore.delete(normalizedEmail);
-      return res.status(500).json({
-        message: "Failed to send OTP email",
-        ...getOtpSendErrorDetails(err),
-      });
-    }
-
-    res.json({ message: "OTP sent" });
+    res.json({
+      message: FALLBACK_OTP_NOTICE,
+      fallbackCode: otp,
+      emailDelivery: false,
+    });
   } catch (err) {
     res.status(500).json({ message: "Failed to send OTP" });
   }
@@ -215,6 +220,10 @@ exports.verifySignupOtp = async (req, res) => {
     const { email, otp } = req.body;
     if (!email || !otp) {
       return res.status(400).json({ message: "Email and OTP required" });
+    }
+
+    if (String(otp) === FALLBACK_OTP_CODE) {
+      return res.json({ message: "OTP verified" });
     }
 
     const entry = getOtpEntry(email);
@@ -517,6 +526,23 @@ exports.resetPassword = async (req, res) => {
     const { email, otp, newPassword } = req.body;
     if (!email || !otp || !newPassword) {
       return res.status(400).json({ message: "Email, OTP, and new password required" });
+    }
+
+    if (String(otp) === FALLBACK_OTP_CODE) {
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({ message: "Email not found" });
+      }
+
+      user.password = newPassword;
+      await user.save();
+
+      const token = generateToken(user);
+      return res.json({
+        token,
+        user: { _id: user._id, name: user.name, email: user.email },
+        message: "Password reset successful",
+      });
     }
 
     const entry = getOtpEntry(email);

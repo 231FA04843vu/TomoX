@@ -1,39 +1,5 @@
-const nodemailer = require("nodemailer");
-require("dotenv").config();
-
-// Use environment variables for credentials to avoid checking secrets into source control.
-const EMAIL_USER = (process.env.EMAIL_USER || "").trim();
-const EMAIL_PASS = process.env.EMAIL_PASS || "";
-const EMAIL_FROM = (process.env.EMAIL_FROM || EMAIL_USER).trim();
-const SMTP_HOST = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
-const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
-const SMTP_SECURE = String(process.env.SMTP_SECURE || SMTP_PORT === 465).toLowerCase() === "true";
+const { sendMail, EMAIL_FROM } = require("./emailTransport");
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
-
-let transporter = null;
-if (EMAIL_USER && EMAIL_PASS) {
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_SECURE,
-    connectionTimeout: 20000,
-    greetingTimeout: 20000,
-    socketTimeout: 30000,
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS
-    }
-  });
-
-  // verify connection configuration
-  transporter.verify().then(() => {
-    console.log("Mail transporter is configured and ready");
-  }).catch((err) => {
-    console.error("Mail transporter verification failed:", err && err.message ? err.message : err);
-  });
-} else {
-  console.warn("Email credentials not provided. Set EMAIL_USER and EMAIL_PASS in environment.");
-}
 
 /**
  * Sends a formatted support email to the customer
@@ -119,12 +85,6 @@ TomoX Support Team
 </html>
 `;
 
-  if (!transporter) {
-    const message = "Cannot send email: transporter is not configured (missing EMAIL_USER/EMAIL_PASS)";
-    console.error(message);
-    return { ok: false, error: message };
-  }
-
   const mailOptions = {
     from: `"TomoX Support" <${EMAIL_FROM}>`,
     to,
@@ -134,9 +94,9 @@ TomoX Support Team
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${to}. Message ID: ${info.messageId}`);
-    return { ok: true, messageId: info.messageId };
+    const info = await sendMail(mailOptions);
+    console.log(`Email sent to ${to}. Message ID: ${info.messageId || "n/a"}`);
+    return info;
   } catch (error) {
     console.error("Email sending failed:", error && error.message ? error.message : error);
     // Add richer diagnostic fields when available
@@ -164,4 +124,3 @@ TomoX Support Team
 };
 
 module.exports = sendEmail;
-module.exports._transporter = transporter; // exported for quick checks in tests or scripts

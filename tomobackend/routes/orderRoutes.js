@@ -165,8 +165,28 @@ router.get('/my/list', authUser, async (req, res) => {
       return res.json({ orders: [] });
     }
 
-    const orders = await Order.find({ $or: orConditions }).sort({ createdAt: -1 });
-    return res.json({ orders });
+    const orders = await Order.find({ $or: orConditions }).sort({ createdAt: -1 }).lean();
+    
+    const Restaurant = require('../models/restaurantModel');
+    const vendorIds = orders.map(o => o.vendorId);
+    const restaurants = await Restaurant.find({ vendorId: { $in: vendorIds } }).lean();
+    
+    const restaurantMap = {};
+    restaurants.forEach(r => {
+      restaurantMap[r.vendorId.toString()] = r;
+    });
+
+    const populatedOrders = orders.map(o => {
+      const rest = restaurantMap[o.vendorId.toString()];
+      if (rest) {
+        o.restaurantName = rest.name;
+        o.restaurantLocation = rest.location;
+        o.restaurantImage = rest.logo;
+      }
+      return o;
+    });
+
+    return res.json({ orders: populatedOrders });
   } catch (err) {
     console.error('Fetch my orders error:', err);
     return res.status(500).json({ error: 'Failed to fetch orders' });

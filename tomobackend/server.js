@@ -138,6 +138,10 @@ app.use('/api/dashboard', dashboardRoutes);
 const couponRoutes = require('./routes/couponRoutes');
 app.use('/api/coupons', couponRoutes);
 
+// Location Proxy
+const locationRoutes = require('./routes/locationRoutes');
+app.use('/api/location', locationRoutes);
+
 // Support Tickets
 const supportRoutes = require("./routes/supportRoutes");
 app.use("/api/support", supportRoutes);

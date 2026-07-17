@@ -46,7 +46,7 @@ tomobackend/
 │   ├── authVendor.js    # Vendor JWT verification
 │   └── upload.js        # Multer file upload
 ├── utils/                # Helper functions
-│   ├── sendEmail.js     # Email notifications via Gmail SMTP
+│   ├── sendEmail.js     # Email notifications via API-based mail transport
 │   └── ...
 ├── config/
 │   └── db.js            # MongoDB connection
@@ -63,7 +63,7 @@ tomobackend/
 - Node.js (v16+)
 - MongoDB (local or Atlas)
 - npm or yarn
-- Gmail account (for email notifications)
+- Email provider account or SMTP fallback credentials
 
 ### Installation
 
@@ -91,10 +91,11 @@ tomobackend/
    CORS_ORIGINS=https://your-tomoapp.netlify.app,https://your-customercare.netlify.app,https://your-companyadmin.netlify.app
    EMAIL_USER=your-gmail@gmail.com
    EMAIL_PASS=your-gmail-app-password
-   EMAIL_FROM=your-gmail@gmail.com
+   EMAIL_FROM=your-verified-sender@example.com
    SMTP_HOST=smtp.gmail.com
    SMTP_PORT=465
    SMTP_SECURE=true
+   RESEND_API_KEY=your_resend_api_key
    ```
 
 ### Development
@@ -177,7 +178,7 @@ npm start
 
 ## 📧 Email System
 
-**Email Provider:** Gmail SMTP
+**Email Provider:** Resend API preferred, Gmail SMTP fallback
 
 Emails are sent for:
 - OTP verification codes
@@ -185,7 +186,8 @@ Emails are sent for:
 - Support ticket notifications
 - Password reset links
 
-**Note:** Gmail requires an **App Password** (not regular password) for SMTP authentication.
+**Note:** Gmail requires an **App Password** (not regular password) for SMTP authentication if you use the SMTP fallback.
+**Note:** If you use Resend, verify your sender/domain and set `RESEND_API_KEY`.
 
 ## 🗄️ Database Models
 
@@ -247,7 +249,7 @@ Currently deployed on **Render**:
 - **Start command:** `npm start`
 - **Environment variables:** Configured in Render dashboard
 
-**Important:** Ensure MongoDB connection string and email credentials are set in Render environment variables.
+**Important:** Ensure MongoDB connection string and either `RESEND_API_KEY` or SMTP credentials are set in your hosting environment.
 
 ## 🐛 Troubleshooting
 
@@ -257,9 +259,8 @@ Currently deployed on **Render**:
 - Ensure network access is allowed
 
 ### Email Not Sending
-- Verify Gmail app password (not regular password)
-- Check Gmail account has "Less secure app access" enabled
-- Check email logs in Render
+- Verify the Resend API key and verified sender if using the API transport
+- If using the SMTP fallback, verify the Gmail app password and sender settings
 
 ### CORS Errors
 - Verify frontend URL is in `corsOptions`
@@ -284,7 +285,10 @@ MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/dbname
 # JWT
 JWT_SECRET=your-super-secret-key-change-in-production
 
-# Email (Gmail SMTP)
+# Email (preferred API transport)
+RESEND_API_KEY=your-resend-api-key
+
+# Email (SMTP fallback)
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-gmail-app-password
 EMAIL_FROM=your-email@gmail.com

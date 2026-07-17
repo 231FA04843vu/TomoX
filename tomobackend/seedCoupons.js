@@ -2,193 +2,177 @@ const mongoose = require('mongoose');
 const Coupon = require('./models/Coupon');
 require('dotenv').config();
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/tomox';
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(async () => {
+  console.log("Connected to MongoDB");
+  await Coupon.deleteMany({});
+  
+  const coupons = [
+    {
+      code: 'PAYTMUPI',
+      discountType: 'fixed',
+      discountValue: 50,
+      minOrderAmount: 100,
+      title: 'Flat ₹50 cashback with Paytm UPI',
+      description: 'Flat ₹50 cashback using Paytm UPI on payments above ₹100',
+      termsAndConditions: [
+        'Cashback offer exclusive to users inactive on Paytm for more than 60 days',
+        'Flat ₹50 cashback if no Paytm payment has been made anywhere in the last 60 days; otherwise, get a ₹50 recharge/bill payment coupon',
+        'To avail the offer, the user must complete a payment on the merchant app/website using Paytm UPI or Paytm UPI Lite',
+        'Users will receive cashback via scratch cards in the “Cashback & Offers” section of the Paytm app. These scratch cards expire 2 days after issuance',
+        'After scratching, cashback will be credited to the user’s UPI-linked bank account within 24 hours',
+        'Users who have used Paytm anywhere in the last 60 days will receive a ₹50 voucher, valid for 7 days and redeemable on subsequent recharge or bill payments on the Paytm app',
+        'User will get a flat ₹50 instant discount upon applying the unique voucher code in the “Offers for you” section',
+        'User will receive cashback or voucher only once, applicable on either Food or Instamart or Dineout payment whichever is first',
+        'Paytm may update or discontinue the offer or its Terms & Conditions from time to time. Any changes may be made without prior notice',
+        'For any offer-related queries, users may contact Paytm Customer Support',
+        'Other standard Terms & Conditions apply'
+      ],
+      validUntil: new Date('2026-07-31T23:59:59'),
+      couponType: 'hot'
+    },
+    {
+      code: 'AMAZONPAYLATER',
+      discountType: 'fixed',
+      discountValue: 25,
+      minOrderAmount: 199,
+      title: 'Flat ₹25 cashback with Amazon Pay Later',
+      description: 'Flat ₹25 cashback on Amazon Pay Later transactions above ₹199',
+      termsAndConditions: [
+        'Applicable once per user during the offer period',
+        'Flat ₹25 cashback will be available in the form of a scratch card in your Amazon Pay account',
+        'Valid on the net transaction amount of ₹199 & above using Amazon Pay Later',
+        'Valid only for users who have linked their Amazon account and paid using Amazon Pay Later',
+        'Not valid on payments via Amazon Pay UPI directly from the UPI section or Amazon Pay Balance',
+        'The cashback will only be issued once the customer scratches the issued card by going to the Rewards page on Amazon Pay',
+        'Once the scratched card is scratched, cashback will be credited as Amazon Pay Balance within 24 hours',
+        'Other T&Cs may apply'
+      ],
+      validUntil: new Date('2026-07-31T23:59:59'),
+      couponType: 'standard'
+    },
+    {
+      code: 'APAYFEST',
+      discountType: 'fixed', // Modified to fixed since description says Flat ₹15
+      discountValue: 15,
+      minOrderAmount: 199,
+      title: 'Flat ₹15 cashback with Amazon Pay Balance',
+      description: 'Flat ₹15 cashback on Amazon Pay Balance transactions above ₹199',
+      termsAndConditions: [
+        'Applicable once per user during the offer period',
+        'Flat ₹15 cashback will be available in the form of a scratch card in your Amazon Pay account',
+        'Valid on the net transaction amount of ₹199 & above using Amazon Pay Balance',
+        'Valid only for users who have linked their Amazon account and paid using Amazon Pay Balance',
+        'Not valid on payments via Amazon Pay UPI directly from the UPI section or Amazon Pay balance',
+        'The cashback will only be issued once the customer scratches the issued card by going to the Rewards page on Amazon Pay',
+        'Once the scratched card is scratched, cashback will be credited as Amazon Pay Balance within 24 hours',
+        'Other T&Cs may apply'
+      ],
+      validUntil: new Date('2026-07-31T23:59:59'),
+      couponType: 'standard'
+    },
+    {
+      code: 'MBKKICK',
+      discountType: 'fixed',
+      discountValue: 150, // "Up to 150"
+      minOrderAmount: 249,
+      title: 'Up to ₹150 cashback with MobiKwik Wallet',
+      description: 'Assured ₹10 to ₹150 Instant Cashback via Scratch Card on MobiKwik Wallet transactions above ₹249',
+      termsAndConditions: [
+        'Assured cashback will be ₹10 per transaction',
+        'Applicable once per user across Food & Toing payments per calendar month',
+        'Valid on the net transaction amount of ₹249 & above using the MobiKwik Wallet',
+        'Cashback can be claimed through a Scratch card on the MobiKwik app in the rewards section & the Scratch card will be valid for 7 days only',
+        'Cashback will be credited to the user\'s MobiKwik wallet after the scratch card is scratched',
+        'Other T&Cs may apply'
+      ],
+      validUntil: new Date('2026-07-31T23:59:59'),
+      couponType: 'standard'
+    },
+    {
+      code: 'FLAT175',
+      discountType: 'fixed',
+      discountValue: 175,
+      minOrderAmount: 599,
+      title: 'Get Flat Rs.175 off',
+      description: 'Use code FLAT175 & get flat ₹175 off on orders above 599.',
+      termsAndConditions: [
+        'Offer is valid only on select restaurants',
+        'Coupon code can be applied only once in 2 hrs on this restaurant',
+        'Other T&Cs may apply'
+      ],
+      validUntil: new Date('2026-10-31T23:59:59'),
+      couponType: 'mega'
+    },
+    {
+      code: 'NEWYEARPARTY',
+      discountType: 'fixed',
+      discountValue: 300,
+      minOrderAmount: 1399,
+      title: 'Get Flat ₹300 off',
+      description: 'Use code NEWYEARPARTY & get FLAT ₹300 Off on orders above ₹1399',
+      termsAndConditions: [
+        'Offer is valid only on select restaurants',
+        'Coupon code can be applied only once in 2 hrs on this restaurant',
+        'Other T&Cs may apply'
+      ],
+      validUntil: new Date('2026-07-31T23:59:59'),
+      couponType: 'mega'
+    },
+    {
+      code: 'FLAT500',
+      discountType: 'fixed',
+      discountValue: 500,
+      minOrderAmount: 1999,
+      title: 'Get Flat Rs.500 Off',
+      description: 'Use code FLAT500 & get Flat ₹500 off on orders above ₹1999',
+      termsAndConditions: [
+        'Offer is valid only on select restaurants',
+        'Coupon code can be applied only once in 2 hrs',
+        'Other T&Cs may apply'
+      ],
+      validUntil: new Date('2026-08-30T23:59:59'),
+      couponType: 'mega'
+    },
+    {
+      code: 'ICICIAPAY',
+      discountType: 'percentage',
+      discountValue: 5,
+      minOrderAmount: 299,
+      title: 'Get 5% discount using Amazon Pay ICICI Bank Credit Cards',
+      description: 'Flat 5% discount on orders above ₹299',
+      termsAndConditions: [
+        'Valid only on Amazon Pay ICICI Bank Credit Cards',
+        'Not applicable on other variants of ICICI Bank Credit Cards, ICICI Bank Corporate Cards, ICICI Bank Debit Cards, UPI & Net Banking',
+        'Other T&Cs may apply'
+      ],
+      validUntil: new Date('2026-07-31T23:59:59'),
+      couponType: 'standard'
+    },
+    {
+      code: 'VISAPLATINUMCC',
+      discountType: 'percentage',
+      discountValue: 10,
+      maxDiscountAmount: 75,
+      minOrderAmount: 600,
+      title: 'Get 10% OFF using Visa Platinum Credit Cards',
+      description: 'Maximum upto ₹75 discount on orders above ₹600',
+      termsAndConditions: [
+        'Valid on Visa Platinum Credit Cards',
+        'Maximum discount is ₹75',
+        'Other T&Cs may apply'
+      ],
+      validUntil: new Date('2026-07-31T23:59:59'),
+      couponType: 'standard'
+    }
+  ];
 
-// Helper to create dates relative to now
-const addTime = (hours = 0, days = 0) => {
-  return new Date(Date.now() + (hours * 60 * 60 * 1000) + (days * 24 * 60 * 60 * 1000));
-};
-
-const sampleCoupons = [
-  {
-    code: 'FLASH30',
-    discountType: 'percentage',
-    discountValue: 20,
-    minOrderAmount: 150,
-    maxDiscountAmount: 60,
-    validFrom: new Date(),
-    validUntil: addTime(0.5), // Expires in 30 minutes
-    isActive: true,
-    usageLimit: 30,
-    usedCount: 18,
-    couponType: 'flash',
-    description: 'Flash Deal! Get 20% off up to ₹60 - Hurry, expires in 30 mins!'
-  },
-  {
-    code: 'URGENT2H',
-    discountType: 'fixed',
-    discountValue: 80,
-    minOrderAmount: 300,
-    maxDiscountAmount: null,
-    validFrom: new Date(),
-    validUntil: addTime(2), // Expires in 2 hours
-    isActive: true,
-    usageLimit: 25,
-    usedCount: 15,
-    couponType: 'hot',
-    description: 'Limited Time! Flat ₹80 off - Valid for 2 hours only!'
-  },
-  {
-    code: 'TODAY10H',
-    discountType: 'percentage',
-    discountValue: 18,
-    minOrderAmount: 250,
-    maxDiscountAmount: 100,
-    validFrom: new Date(),
-    validUntil: addTime(10), // Expires in 10 hours
-    isActive: true,
-    usageLimit: 50,
-    usedCount: 22,
-    couponType: 'limited',
-    description: 'Today\'s Deal! Get 18% off up to ₹100 - ends tonight!'
-  },
-  {
-    code: 'FLASH50',
-    discountType: 'percentage',
-    discountValue: 15,
-    minOrderAmount: 150,
-    maxDiscountAmount: 50,
-    validFrom: new Date(),
-    validUntil: addTime(0, 2), // 2 days - expiring soon!
-    isActive: true,
-    usageLimit: 50,
-    usedCount: 12,
-    couponType: 'flash',
-    description: 'Flash Sale! Get 15% off up to ₹50 on orders above ₹150'
-  },
-  {
-    code: 'WELCOME50',
-    discountType: 'percentage',
-    discountValue: 10,
-    minOrderAmount: 200,
-    maxDiscountAmount: 50,
-    validFrom: new Date(),
-    validUntil: addTime(0, 30), // 30 days
-    isActive: true,
-    usageLimit: 100,
-    usedCount: 35,
-    couponType: 'welcome',
-    description: 'Welcome offer! Get 10% off up to ₹50 on orders above ₹200'
-  },
-  {
-    code: 'FLAT100',
-    discountType: 'fixed',
-    discountValue: 100,
-    minOrderAmount: 500,
-    maxDiscountAmount: null,
-    validFrom: new Date(),
-    validUntil: addTime(0, 15), // 15 days
-    isActive: true,
-    usageLimit: 50,
-    usedCount: 8,
-    couponType: 'save',
-    description: 'Flat ₹100 off on orders above ₹500'
-  },
-  {
-    code: 'SAVE25',
-    discountType: 'percentage',
-    discountValue: 25,
-    minOrderAmount: 400,
-    maxDiscountAmount: 150,
-    validFrom: new Date(),
-    validUntil: addTime(20), // 20 hours - less than a day
-    isActive: true,
-    usageLimit: 25,
-    usedCount: 18,
-    couponType: 'hot',
-    description: 'Hot Deal! Get 25% off up to ₹150 - ends tomorrow!'
-  },
-  {
-    code: 'FREESHIP',
-    discountType: 'fixed',
-    discountValue: 30,
-    minOrderAmount: 250,
-    maxDiscountAmount: null,
-    validFrom: new Date(),
-    validUntil: addTime(0, 60), // 60 days
-    isActive: true,
-    usageLimit: null,
-    usedCount: 142,
-    couponType: 'delivery',
-    description: 'Free delivery! Get ₹30 off delivery charges on orders above ₹250'
-  },
-  {
-    code: 'MEGA200',
-    discountType: 'fixed',
-    discountValue: 200,
-    minOrderAmount: 1000,
-    maxDiscountAmount: null,
-    validFrom: new Date(),
-    validUntil: addTime(0, 10), // 10 days
-    isActive: true,
-    usageLimit: 20,
-    usedCount: 3,
-    couponType: 'mega',
-    description: 'Mega Saver! Flat ₹200 off on orders above ₹1000'
-  },
-  {
-    code: 'BIGSAVE',
-    discountType: 'percentage',
-    discountValue: 30,
-    minOrderAmount: 600,
-    maxDiscountAmount: 200,
-    validFrom: new Date(),
-    validUntil: addTime(0, 3), // 3 days
-    isActive: true,
-    usageLimit: 30,
-    usedCount: 22,
-    couponType: 'save',
-    description: 'Big Saver! Get 30% off up to ₹200 on orders above ₹600'
-  },
-  {
-    code: 'FLAT50',
-    discountType: 'fixed',
-    discountValue: 50,
-    minOrderAmount: 300,
-    maxDiscountAmount: null,
-    validFrom: new Date(),
-    validUntil: addTime(0, 45), // 45 days
-    isActive: true,
-    usageLimit: null,
-    usedCount: 89,
-    couponType: 'standard',
-    description: 'Flat ₹50 off on orders above ₹300'
-  }
-];
-
-async function seedCoupons() {
-  try {
-    await mongoose.connect(MONGO_URI);
-    console.log('📦 Connected to MongoDB');
-
-    // Clear existing coupons
-    await Coupon.deleteMany({});
-    console.log('🗑️  Cleared existing coupons');
-
-    // Insert sample coupons
-    const result = await Coupon.insertMany(sampleCoupons);
-    console.log(`✅ Successfully seeded ${result.length} coupons`);
-    
-    console.log('\n📋 Available Coupons:');
-    result.forEach(coupon => {
-      console.log(`  - ${coupon.code}: ${coupon.description}`);
-    });
-
-    process.exit(0);
-  } catch (error) {
-    console.error('❌ Error seeding coupons:', error);
-    process.exit(1);
-  }
-}
-
-seedCoupons();
+  await Coupon.insertMany(coupons);
+  console.log('Coupons seeded successfully');
+  process.exit();
+}).catch(err => {
+  console.error("Failed to connect to MongoDB", err);
+  process.exit(1);
+});

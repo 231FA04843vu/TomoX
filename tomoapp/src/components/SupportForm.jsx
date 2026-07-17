@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/supportForm.css";
 
 const API_COMPANY = import.meta.env.VITE_API_COMPANY || "http://localhost:5000";
 const USER_STORAGE_KEY = "tomo.user.v1";
