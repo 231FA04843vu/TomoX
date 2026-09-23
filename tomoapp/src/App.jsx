@@ -636,9 +636,7 @@ function App() {
           path="/"
           element={
             <>
-              {isLoading ? (
-                <PageLoader />
-              ) : !isSearching ? (
+              {!isSearching ? (
                 <>
                   {/* "What's on your mind?" category row */}
                   <CategoryShortcuts />
