@@ -1,5 +1,6 @@
 import React from 'react';
-import Lottie from 'lottie-react';
+import * as LottiePackage from 'lottie-react';
+const Lottie = LottiePackage.default || LottiePackage.Lottie || LottiePackage;
 import animationData from '../assets/delivery-rider.json';
 import './PageLoader.css';
 
