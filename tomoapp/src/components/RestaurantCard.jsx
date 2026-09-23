@@ -68,14 +68,6 @@ const RestaurantCard = memo(function RestaurantCard({ restaurant }) {
         position: 'relative'
       }}
     >
-      {restaurant.isOnline === false && (
-        <div style={{
-          position: 'absolute', top: '10px', right: '10px', background: 'red', color: 'white',
-          padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', zIndex: 10
-        }}>
-          Currently Offline
-        </div>
-      )}
       {/* Image with overlay offer badge */}
       <div className="restaurant-image-wrapper">
         <img
@@ -91,16 +83,27 @@ const RestaurantCard = memo(function RestaurantCard({ restaurant }) {
           }}
         />
         <div className="restaurant-overlay" aria-hidden="true" />
-        {/* Offer badge at bottom of image */}
+        
+        {/* Offer badge at top left on mobile */}
         <div className="restaurant-offer-badge">
-          <i className="fas fa-percent" style={{ marginRight: 5, fontSize: 11 }} />
           {offerLabel}
         </div>
+
+        {restaurant.isOnline === false && (
+          <div className="restaurant-offline-badge desktop-hidden">
+            Currently Offline
+          </div>
+        )}
       </div>
 
       {/* Info below image */}
       <div className="restaurant-info">
-        <h3 className="restaurant-name">{name}</h3>
+        <div className="restaurant-info-header">
+          <h3 className="restaurant-name">{name}</h3>
+          <button className="restaurant-heart-btn desktop-hidden">
+            <i className="far fa-heart"></i>
+          </button>
+        </div>
 
         <div className="restaurant-meta">
           {/* Green rating pill */}

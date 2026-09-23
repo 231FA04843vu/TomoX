@@ -227,7 +227,16 @@ const RestaurantMenu = memo(() => {
         </span>
       </div>
 
-      <h1 className="sw-restaurant-title">{restaurant.name}</h1>
+      <h1 className="sw-restaurant-title desktop-only">{restaurant.name}</h1>
+
+      {/* Mobile Sticky Header */}
+      <div className="restaurant-mobile-header desktop-hidden">
+        <button className="back-btn" onClick={() => navigate(-1)}><i className="fas fa-arrow-left"></i></button>
+        <div className="right-actions">
+          <button className="action-btn"><i className="fas fa-share-alt"></i></button>
+          <button className="action-btn"><i className="far fa-heart"></i></button>
+        </div>
+      </div>
 
       {/* Hero Image */}
       <div className="sw-hero-image-container">
@@ -238,7 +247,37 @@ const RestaurantMenu = memo(() => {
       </div>
 
       {/* Meta Box */}
-      <div className="sw-meta-box">
+      {/* Mobile Details Card */}
+      <div className="restaurant-details-card desktop-hidden">
+        <div className="card-header">
+          <h1 className="restaurant-name">{restaurant.name}</h1>
+          <span className="open-badge">Open</span>
+        </div>
+        
+        <div className="restaurant-meta-row">
+          <span className="rating-pill"><i className="fas fa-star"></i> {restaurant.rating || 4.0} ({100 + (getDeterministicHash(restaurant._id || "") % 900)})</span>
+          <span className="dot">•</span>
+          <span className="time-info">34-39 mins</span>
+          <span className="dot">•</span>
+          <span className="price-info">₹200 for two</span>
+        </div>
+        <div className="restaurant-location-row">
+          {restaurant.location || "Biminenivaripalem, Andhra Pradesh"}
+        </div>
+        
+        <div className="restaurant-highlights">
+          <div className="highlight"><i className="fas fa-shield-alt"></i> Hygienic Packaging</div>
+          <div className="highlight"><i className="fas fa-thumbs-up"></i> Great Taste</div>
+          <div className="highlight"><i className="fas fa-clock"></i> On-time Delivery</div>
+        </div>
+
+        <div className="restaurant-tabs">
+          <div className="tab active">Menu</div>
+          <div className="tab">Reviews</div>
+          <div className="tab">About</div>
+        </div>
+      </div>
+      <div className="sw-meta-box desktop-only">
         <div className="sw-meta-rating">
           <i className="fas fa-star"></i>
           {restaurant.rating || 4.5} ({100 + (getDeterministicHash(restaurant._id || "") % 900)} ratings) &bull; ₹{150 + (getDeterministicHash(restaurant._id || "") % 300)} for two
@@ -610,35 +649,15 @@ const RestaurantMenu = memo(() => {
 
       {/* Floating Cart Bar */}
       {cartItems.length > 0 && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 'calc(100% - 32px)',
-          maxWidth: '600px',
-          backgroundColor: '#60b246',
-          color: '#fff',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          cursor: 'pointer',
-          fontFamily: 'sans-serif'
-        }} onClick={() => navigate('/cart')}>
-          <div style={{ display: 'flex', flexDirection: 'column', fontWeight: 'bold' }}>
-            <span style={{ fontSize: '14px', marginBottom: '2px' }}>
-              {cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0)} ITEM{cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0) > 1 ? 'S' : ''}
-            </span>
-            <span style={{ fontSize: '14px' }}>
-              ₹{cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0)} plus taxes
+        <div className="floating-cart-bar" onClick={() => navigate('/cart')}>
+          <div className="cart-info">
+            <i className="fas fa-shopping-cart cart-icon"></i>
+            <span className="cart-details">
+              {cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0)} Items | ₹{cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0)}
             </span>
           </div>
-          <div style={{ fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-            View Cart <i className="fas fa-shopping-cart" style={{ marginLeft: '8px' }}></i>
+          <div className="cart-action">
+            View Cart <i className="fas fa-arrow-right"></i>
           </div>
         </div>
       )}

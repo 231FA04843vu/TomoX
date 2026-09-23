@@ -17,6 +17,7 @@ import Help from "./pages/Help";
 import Account from "./pages/Account";
 import Offers from "./pages/Offers";
 import AuthDrawer from "./components/AuthDrawer";
+import MobileBottomNav from "./components/MobileBottomNav";
 import { normalizeAssetUrl } from "./utils/url";
 
 const Checkout = lazy(() => import(/* webpackPrefetch: true */ "./pages/Checkout"));
@@ -26,6 +27,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 
 import "./index.css";
+import "./MobileUI.css";
 
 const API_COMPANY = import.meta.env.VITE_API_COMPANY;
 const USER_STORAGE_KEY = "tomo.user.v1";
@@ -752,6 +754,8 @@ function App() {
       </Routes>
 
       {isHomePage && <Footer />}
+
+      <MobileBottomNav />
 
       <AuthDrawer
         isOpen={isAuthDrawerOpen}

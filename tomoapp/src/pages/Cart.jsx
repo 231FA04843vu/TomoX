@@ -314,9 +314,15 @@ const Cart = ({ user }) => {
   if (isLoading) return <PageLoader />;
 
   return (
-    <div className="secure-checkout-page">
+    <div className="secure-checkout-page mobile-cart-page">
+      {/* Mobile Cart Header */}
+      <div className="cart-mobile-header desktop-hidden">
+        <button onClick={() => navigate(-1)} className="back-btn"><i className="fas fa-arrow-left"></i></button>
+        <h1>Your Cart</h1>
+      </div>
+
       {/* Secure Header */}
-      <header className="secure-header">
+      <header className="secure-header mobile-hidden">
         <div className="secure-header-content">
           <div className="secure-header-left">
             <Link to="/">
@@ -334,7 +340,7 @@ const Cart = ({ user }) => {
       </header>
 
       {/* Main Checkout Area */}
-      <main className="secure-checkout-main">
+      <main className="secure-checkout-main mobile-cart-layout">
         
         {/* Left Column (Address & Payment) */}
         <div className="secure-checkout-left">
@@ -424,7 +430,10 @@ const Cart = ({ user }) => {
               {items.map(item => {
                 const itemKey = String(item.itemId || item._id || item.id || '');
                 return (
-                  <div className="cart-item-row" key={itemKey}>
+                  <div className="cart-item-row mobile-cart-item" key={itemKey}>
+                    {item.image && (
+                      <img src={normalizeAssetUrl(item.image)} alt={item.name} className="desktop-hidden mobile-cart-item-img" />
+                    )}
                     <div className="cart-item-name">
                       <div className="veg-indicator"></div>
                       <div>
@@ -445,6 +454,11 @@ const Cart = ({ user }) => {
                   </div>
                 )
               })}
+            </div>
+
+            <div className="add-more-items-btn desktop-hidden" onClick={() => navigate(-1)}>
+              <span><i className="fas fa-plus"></i> Add more items</span>
+              <i className="fas fa-chevron-right"></i>
             </div>
 
             <div className="suggestions-box">

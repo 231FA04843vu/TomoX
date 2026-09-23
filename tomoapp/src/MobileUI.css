@@ -1,0 +1,620 @@
+/* =========================================
+   MOBILE UI OVERHAUL (max-width: 768px)
+   ========================================= */
+
+@media (max-width: 768px) {
+  /* Hide desktop-specific elements */
+  .swiggy-nav-links {
+    display: none !important;
+  }
+
+  .site-header.swiggy-header {
+    padding: 10px 15px;
+    height: auto;
+    border-bottom: none;
+    box-shadow: none;
+    background: #fff;
+  }
+
+  .header-content-swiggy {
+    max-width: 100%;
+    padding: 0;
+    justify-content: space-between;
+  }
+
+  .header-left {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* Add spacing at the bottom of the app to account for BottomNav */
+  .app-container {
+    padding-bottom: 70px;
+    background: #f8f9fa;
+  }
+
+  /* -----------------------------------------
+     Mobile Bottom Navigation
+     ----------------------------------------- */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    justify-content: space-around;
+    padding: 8px 0;
+    border-top: 1px solid #eee;
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #888;
+    font-size: 10px;
+    font-weight: 500;
+    gap: 4px;
+    padding: 4px 8px;
+    transition: all 0.2s ease;
+  }
+
+  .bottom-nav-item i {
+    font-size: 20px;
+  }
+
+  .bottom-nav-item.active {
+    color: #f26522; /* TomoX Orange */
+  }
+
+  .bottom-nav-item.active i {
+    transform: scale(1.1);
+  }
+
+  /* Mobile Notification Bell */
+  .mobile-notification-bell {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #333;
+    font-size: 20px;
+    background: none;
+    border: none;
+  }
+  
+  .mobile-notification-bell .badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #f26522;
+    color: white;
+    font-size: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+  }
+
+  /* Header Location Styling for Mobile */
+  .header-location-type {
+    display: none; /* Hide 'HOME' text */
+  }
+  
+  .header-location {
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+    margin-left: 10px;
+    max-width: 200px;
+  }
+
+  .header-location-city {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 150px;
+    vertical-align: middle;
+  }
+
+  /* Hide default Footer on Mobile */
+  footer {
+    display: none !important;
+  }
+
+  /* -----------------------------------------
+     Category Shortcuts Mobile Grid
+     ----------------------------------------- */
+  .category-shortcuts {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 15px 10px !important;
+    overflow: hidden !important;
+    padding: 15px !important;
+  }
+  .shortcut-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+  .shortcut-image {
+    width: 60px !important;
+    height: 60px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50% !important;
+    background: #fdfdfd !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .shortcut-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  .shortcut-label {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #444;
+    font-weight: 500;
+    text-align: center;
+  }
+  .section-nav {
+    display: none !important; /* Hide arrows on mobile */
+  }
+  .category-divider {
+    display: none !important;
+  }
+
+  /* -----------------------------------------
+     Restaurant Card Mobile Styling
+     ----------------------------------------- */
+  .restaurant-section {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 15px !important;
+    gap: 20px !important;
+  }
+  .restaurant-card {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .restaurant-image-wrapper {
+    height: 180px !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+  .restaurant-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  .restaurant-offer-badge {
+    position: absolute !important;
+    top: 10px !important;
+    left: 10px !important;
+    background: #f26522 !important;
+    color: white !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    bottom: auto !important;
+    transform: none !important;
+    border: none !important;
+  }
+  .restaurant-offline-badge {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    background: rgba(0,0,0,0.6) !important;
+    color: white !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    backdrop-filter: blur(4px) !important;
+  }
+  .restaurant-info {
+    padding: 10px 0 !important;
+  }
+  .restaurant-info-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 4px !important;
+  }
+  .restaurant-name {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #222 !important;
+    margin: 0 !important;
+  }
+  .restaurant-heart-btn {
+    background: none !important;
+    border: none !important;
+    font-size: 20px !important;
+    color: #555 !important;
+  }
+  .restaurant-meta {
+    margin-bottom: 4px !important;
+  }
+  .rating-section {
+    background: #1ba672 !important;
+    color: white !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+  }
+  .restaurant-cuisine, .restaurant-location {
+    font-size: 13px !important;
+    color: #666 !important;
+    margin-bottom: 2px !important;
+  }
+
+  /* -----------------------------------------
+     Restaurant Menu (Details) Mobile Styling
+     ----------------------------------------- */
+  .restaurant-mobile-header {
+    display: flex !important;
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    justify-content: space-between;
+    z-index: 10;
+  }
+  .restaurant-mobile-header button {
+    background: rgba(255,255,255,0.9);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    font-size: 16px;
+    color: #333;
+  }
+  .restaurant-mobile-header .right-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .sw-menu-page {
+    padding: 0 !important;
+  }
+  .sw-hero-image-container {
+    height: 250px !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+  .sw-hero-image-container img {
+    height: 100% !important;
+    width: 100% !important;
+    object-fit: cover !important;
+  }
+  .restaurant-details-card {
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    margin-top: -30px;
+    position: relative;
+    z-index: 5;
+    padding: 20px 20px 0;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+  }
+  .restaurant-details-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .restaurant-details-card .restaurant-name {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0;
+    color: #111;
+  }
+  .restaurant-details-card .open-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .restaurant-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 6px;
+  }
+  .restaurant-meta-row .rating-pill {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .restaurant-location-row {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 15px;
+  }
+  .restaurant-highlights {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .restaurant-highlights .highlight {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f8f9fa;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    color: #444;
+  }
+  .restaurant-tabs {
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 15px;
+  }
+  .restaurant-tabs .tab {
+    padding: 10px 0;
+    font-size: 15px;
+    color: #777;
+    font-weight: 600;
+  }
+  .restaurant-tabs .tab.active {
+    color: #f26522;
+    border-bottom: 2px solid #f26522;
+  }
+  
+  .menu-search-bar {
+    display: flex !important;
+    align-items: center;
+    background: #f5f5f5;
+    padding: 10px 15px;
+    border-radius: 12px;
+    margin: 0 15px 20px;
+    color: #777;
+  }
+  .menu-search-bar input {
+    border: none;
+    background: transparent;
+    margin-left: 10px;
+    flex: 1;
+    font-size: 14px;
+    outline: none;
+  }
+  
+  /* Floating Cart Bar */
+  .floating-cart-bar {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 15px !important;
+    right: 15px !important;
+    width: auto !important;
+    background: #f26522 !important;
+    color: #fff !important;
+    border-radius: 12px !important;
+    padding: 12px 15px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-shadow: 0 4px 15px rgba(242, 101, 34, 0.4) !important;
+    z-index: 1000 !important;
+    transform: none !important;
+  }
+  .floating-cart-bar .cart-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .floating-cart-bar .cart-action {
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .sw-breadcrumbs { display: none !important; }
+
+  /* -----------------------------------------
+     Explore Page Mobile Styling
+     ----------------------------------------- */
+  .mobile-explore-page {
+    padding-top: 15px !important;
+  }
+  .explore-header {
+    display: flex !important;
+    align-items: center;
+    padding: 0 15px 20px;
+    gap: 15px;
+  }
+  .explore-header .back-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #333;
+  }
+  .explore-header .header-titles h1 {
+    font-size: 20px;
+    margin: 0;
+    color: #111;
+  }
+  .explore-header .header-titles p {
+    font-size: 12px;
+    color: #666;
+    margin: 2px 0 0;
+  }
+  .mobile-explore-search {
+    margin: 0 15px 20px !important;
+  }
+  .mobile-explore-search input {
+    background: #f5f5f5 !important;
+    border: none !important;
+    padding: 14px 40px 14px 20px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+  }
+  .explore-filter-pills {
+    display: flex !important;
+    gap: 10px;
+    padding: 0 15px 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .explore-filter-pills .pill {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #555;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  }
+  .explore-filter-pills .pill.active {
+    background: #f26522;
+    color: white;
+    border-color: #f26522;
+  }
+  .mobile-cuisines-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px 15px !important;
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+    padding: 0 15px !important;
+  }
+  .mobile-cuisines-grid .cuisine-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .mobile-cuisines-grid img {
+    width: 60px !important;
+    height: 60px !important;
+    margin-bottom: 8px !important;
+    border: none !important;
+  }
+
+  /* -----------------------------------------
+     Cart Page Mobile Styling
+     ----------------------------------------- */
+  .cart-mobile-header {
+    display: flex !important;
+    align-items: center;
+    padding: 15px;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  .cart-mobile-header .back-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    margin-right: 15px;
+  }
+  .cart-mobile-header h1 {
+    font-size: 18px;
+    margin: 0;
+  }
+  .mobile-cart-page {
+    background: #f5f5f5 !important;
+  }
+  .mobile-cart-layout {
+    flex-direction: column-reverse !important;
+    padding: 10px 15px 100px !important;
+    gap: 15px !important;
+  }
+  .secure-checkout-left, .secure-checkout-right {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .cart-summary-box {
+    border: none !important;
+    border-radius: 12px !important;
+    margin-bottom: 15px !important;
+  }
+  .mobile-cart-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  .mobile-cart-item-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-right: 10px;
+  }
+  .cart-primary-action {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 15px !important;
+    right: 15px !important;
+    width: calc(100% - 30px) !important;
+    z-index: 100 !important;
+    box-shadow: 0 4px 15px rgba(242, 101, 34, 0.4) !important;
+  }
+  .add-more-items-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: #fff;
+    border-radius: 12px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    cursor: pointer;
+  }
+}
+
+/* Hide Mobile elements on Desktop */
+@media (min-width: 769px) {
+  .mobile-bottom-nav,
+  .desktop-hidden {
+    display: none !important;
+  }
+}

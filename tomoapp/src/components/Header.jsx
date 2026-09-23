@@ -38,6 +38,12 @@ const Header = memo(function Header({ user, onLogout }) {
           </div>
         </div>
 
+        {/* Mobile Notification Bell */}
+        <button className="mobile-notification-bell desktop-hidden">
+          <i className="far fa-bell"></i>
+          <span className="badge">2</span>
+        </button>
+
         {/* Nav Links */}
         <nav className="nav-links swiggy-nav-links">
           <a href="#" onClick={handleCorporateClick} className="nav-link">

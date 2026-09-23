@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import RestaurantCard from "../components/RestaurantCard";
 import { normalizeAssetUrl } from "../utils/url";
 
@@ -32,6 +32,7 @@ export default function Search({
   offers
 }) {
   const inputRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (inputRef.current) {
@@ -44,10 +45,19 @@ export default function Search({
   };
 
   return (
-    <div className="search-page-container" style={{ maxWidth: '860px', margin: '0 auto', paddingTop: '40px', paddingBottom: '60px', minHeight: '80vh' }}>
+    <div className="search-page-container mobile-explore-page" style={{ maxWidth: '860px', margin: '0 auto', paddingTop: '40px', paddingBottom: '60px', minHeight: '80vh' }}>
       
+      {/* Mobile Explore Header */}
+      <div className="explore-header desktop-hidden">
+        <button onClick={() => navigate(-1)} className="back-btn"><i className="fas fa-arrow-left"></i></button>
+        <div className="header-titles">
+          <h1>Explore</h1>
+          <p>Discover cuisines that make you smile</p>
+        </div>
+      </div>
+
       {/* Search Input */}
-      <div className="search-input-wrapper" style={{ position: 'relative', margin: '0 20px 40px' }}>
+      <div className="search-input-wrapper mobile-explore-search" style={{ position: 'relative', margin: '0 20px 40px' }}>
         <input 
           ref={inputRef}
           type="text" 
@@ -69,14 +79,22 @@ export default function Search({
         <i className="fas fa-search" style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', color: '#686b78', fontSize: '20px' }}></i>
       </div>
 
+      {/* Filter Pills */}
+      <div className="explore-filter-pills desktop-hidden">
+        <button className="pill active">All</button>
+        <button className="pill">Popular</button>
+        <button className="pill">South Indian</button>
+        <button className="pill">North Indian</button>
+      </div>
+
       {/* Popular Cuisines (only show if no query) */}
       {!query && (
-        <div className="popular-cuisines-section" style={{ padding: '0 20px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#3d4152', marginBottom: '24px', fontFamily: 'ProximaNova, arial, "Helvetica Neue", sans-serif' }}>
+        <div className="popular-cuisines-section mobile-cuisines-wrapper" style={{ padding: '0 20px' }}>
+          <h2 className="desktop-only" style={{ fontSize: '22px', fontWeight: '800', color: '#3d4152', marginBottom: '24px', fontFamily: 'ProximaNova, arial, "Helvetica Neue", sans-serif' }}>
             Popular Cuisines
           </h2>
           
-          <div className="cuisines-grid" style={{
+          <div className="cuisines-grid mobile-cuisines-grid" style={{
             display: 'flex',
             flexWrap: 'nowrap',
             overflowX: 'auto',
