@@ -36,10 +36,9 @@ router.get('/', async (req, res) => {
       const maxDistance = parseFloat(radius);
 
       restaurants = restaurants.filter(restaurant => {
-        // If restaurant has no coordinates, we might want to exclude it or include it.
-        // Let's exclude it to ensure "only nearby" rule is strictly followed.
+        // Include legacy restaurants that don't have coordinates yet so they don't vanish
         if (!restaurant.coordinates || restaurant.coordinates.lat == null || restaurant.coordinates.lng == null) {
-          return false;
+          return true;
         }
 
         const distance = getDistanceInKm(
