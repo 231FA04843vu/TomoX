@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { useLocationContext } from "./context/LocationContext";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
