@@ -42,7 +42,10 @@ router.post('/verify-otp', async (req, res) => {
       // Check if they are pending approval
       const pendingVendor = await PendingVendor.findOne({ phone });
       if (pendingVendor) {
-        return res.status(403).json({ message: 'Your vendor account is pending admin approval. Please wait for an email confirmation.' });
+        return res.json({
+          isPending: true,
+          vendor: pendingVendor
+        });
       }
 
       // User not found -> go to onboarding
@@ -94,7 +97,10 @@ router.post('/login', async (req, res) => {
     if (!vendor) {
       const pendingVendor = await PendingVendor.findOne({ email });
       if (pendingVendor) {
-        return res.status(403).json({ message: 'Your vendor account is pending admin approval. Please wait for an email confirmation.' });
+        return res.json({
+          isPending: true,
+          vendor: pendingVendor
+        });
       }
       return res.status(404).json({ message: 'Vendor not found' });
     }

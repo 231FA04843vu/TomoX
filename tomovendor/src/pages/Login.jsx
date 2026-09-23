@@ -52,7 +52,10 @@ function Login({ setIsAuth }) {
       setLoading(true);
       const res = await axios.post(`${API}/api/vendor-auth/verify-otp`, { phone, otp: otpValue });
       
-      if (res.data.isNewUser) {
+      if (res.data.isPending) {
+        // Vendor is pending approval
+        navigate('/status', { state: { vendor: res.data.vendor } });
+      } else if (res.data.isNewUser) {
         // User not found in DB -> Route to onboarding
         localStorage.setItem('tempPhone', phone);
         navigate('/onboarding');
@@ -82,6 +85,12 @@ function Login({ setIsAuth }) {
     try {
       setLoading(true);
       const res = await axios.post(`${API}/api/vendor-auth/login`, { email, password });
+      
+      if (res.data.isPending) {
+        navigate('/status', { state: { vendor: res.data.vendor } });
+        return;
+      }
+
       localStorage.setItem('vendorToken', res.data.token);
       localStorage.setItem('vendorInfo', JSON.stringify(res.data.vendor));
       setIsAuth(true);

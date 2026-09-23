@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 // Auth & Onboarding
 import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
+import ApplicationStatus from "./pages/ApplicationStatus";
 
 // Layout
 import PortalLayout from "./layouts/PortalLayout";
@@ -45,6 +46,7 @@ const App = () => {
         <Route path="/register" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login setIsAuth={setIsAuth} />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/status" element={<ApplicationStatus />} />
 
         <Route element={<ProtectedPortal isAuth={isAuth} />}>
           <Route path="/orders" element={<Orders />} />
