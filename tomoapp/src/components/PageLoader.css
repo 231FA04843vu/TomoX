@@ -9,58 +9,11 @@
   background-color: transparent;
 }
 
-.scooter-container {
-  position: relative;
+.lottie-container {
   display: flex;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 24px;
-}
-
-.img-scooter {
-  width: 140px;
-  height: auto;
-  object-fit: contain;
-  mix-blend-mode: multiply; /* Blends the white background into the transparent container */
-  animation: rideBounce 0.5s infinite alternate;
-  z-index: 2;
-}
-
-.wind-lines {
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 60px;
-  height: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-}
-
-.wind-line {
-  height: 4px;
-  background-color: #ddd;
-  border-radius: 4px;
-  animation: windBlow 0.8s linear infinite;
-  opacity: 0;
-}
-
-.wind-line:nth-child(1) {
-  width: 40px;
-  margin-left: 10px;
-  animation-delay: 0s;
-}
-
-.wind-line:nth-child(2) {
-  width: 60px;
-  animation-delay: 0.2s;
-}
-
-.wind-line:nth-child(3) {
-  width: 30px;
-  margin-left: 20px;
-  animation-delay: 0.4s;
+  margin-bottom: 8px;
 }
 
 .tomox-loader-text {
@@ -74,32 +27,6 @@
 .bouncing-letters span {
   display: inline-block;
   animation: letterBounce 1.2s infinite;
-}
-
-@keyframes rideBounce {
-  0% {
-    transform: translateY(0) rotate(0deg);
-  }
-  100% {
-    transform: translateY(-5px) rotate(-2deg);
-  }
-}
-
-@keyframes windBlow {
-  0% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
 }
 
 @keyframes letterBounce {

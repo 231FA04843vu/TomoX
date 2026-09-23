@@ -1,18 +1,17 @@
 import React from 'react';
+import Lottie from 'lottie-react';
+import animationData from '../assets/delivery-rider.json';
 import './PageLoader.css';
-
-import loaderImg from '../assets/tomox-loader.jpg';
 
 const PageLoader = () => {
   return (
     <div className="tomox-loader-wrapper">
-      <div className="scooter-container">
-        <img src={loaderImg} alt="TomoX Loading" className="scooter-icon img-scooter" />
-        <div className="wind-lines">
-          <span className="wind-line"></span>
-          <span className="wind-line"></span>
-          <span className="wind-line"></span>
-        </div>
+      <div className="lottie-container">
+        <Lottie 
+          animationData={animationData} 
+          loop={true} 
+          style={{ width: 180, height: 180 }} 
+        />
       </div>
       <h2 className="tomox-loader-text">
         <span className="bouncing-letters">
