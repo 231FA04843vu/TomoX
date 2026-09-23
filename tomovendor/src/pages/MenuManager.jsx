@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import '../styles/dashboard.css';
 
 const API_URL = import.meta.env.VITE_API || 'http://localhost:5000';
@@ -232,7 +233,9 @@ function MenuManager() {
           </div>
 
           {loading ? (
-            <div style={{ padding: '24px', textAlign: 'center' }}>Loading Menu...</div>
+            <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <LoadingSpinner message="Loading your menu..." />
+            </div>
           ) : displayItems.length === 0 ? (
             <div className="sw-empty-state">
               <i className="fas fa-utensils" style={{ fontSize: '48px', color: '#ccc', marginBottom: '16px' }}></i>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import '../styles/dashboard.css';
 
 const API_URL = import.meta.env.VITE_API || 'http://localhost:5000';
@@ -427,7 +428,11 @@ function Orders() {
   };
 
   if (loading) {
-    return <div style={{ padding: '24px', textAlign: 'center' }}>Loading Orders...</div>;
+    return (
+      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <LoadingSpinner message="Fetching your orders..." />
+      </div>
+    );
   }
 
   return (
