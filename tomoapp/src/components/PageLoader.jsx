@@ -1,20 +1,18 @@
 import React from 'react';
-import { useLottie } from 'lottie-react';
+import { Player } from '@lottiefiles/react-lottie-player';
 import animationData from '../assets/delivery-rider.json';
 import './PageLoader.css';
 
 const PageLoader = () => {
-  const options = {
-    animationData: animationData,
-    loop: true,
-  };
-  
-  const { View } = useLottie(options);
-
   return (
     <div className="tomox-loader-wrapper">
-      <div className="lottie-container" style={{ width: 180, height: 180 }}>
-        {View}
+      <div className="lottie-container">
+        <Player
+          autoplay
+          loop
+          src={animationData}
+          style={{ height: '180px', width: '180px' }}
+        />
       </div>
       <h2 className="tomox-loader-text">
         <span className="bouncing-letters">
