@@ -8,10 +8,12 @@ function UserSettings() {
   const vendor = JSON.parse(localStorage.getItem('vendorInfo') || '{}');
   
   const [formData, setFormData] = useState({
-    contactEmail: vendor?.contactEmail || '',
-    whatsappNumber: vendor?.whatsappNumber || '',
-    foodType: vendor?.foodType || '',
-    fssaiNumber: vendor?.fssaiNumber || ''
+    name: vendor?.ownerFullName || vendor?.name || '',
+    restaurantName: vendor?.restaurantName || '',
+    restaurantAddress: vendor?.restaurantAddress || '',
+    email: vendor?.email || '',
+    phone: vendor?.phone || '',
+    foodType: vendor?.foodType || ''
   });
 
   const [showOrders, setShowOrders] = useState(() => {
@@ -30,6 +32,18 @@ function UserSettings() {
     localStorage.removeItem('vendorToken');
     localStorage.removeItem('vendorInfo');
     navigate('/login');
+  };
+
+  const inputStyle = {
+    width: '100%', 
+    padding: '10px 12px', 
+    border: '1px solid var(--sw-border)', 
+    borderRadius: '4px',
+    boxSizing: 'border-box',
+    fontSize: '14px',
+    height: '42px',
+    outline: 'none',
+    backgroundColor: '#fff'
   };
 
   return (
@@ -69,6 +83,8 @@ function UserSettings() {
                     const data = await res.json();
                     localStorage.setItem('vendorInfo', JSON.stringify(data.vendor));
                     alert('Profile updated successfully!');
+                    // Optionally update the top bar instantly
+                    window.dispatchEvent(new Event('storage'));
                   } else {
                     alert('Failed to update profile');
                   }
@@ -77,64 +93,48 @@ function UserSettings() {
                   alert('Error updating profile');
                 }
               }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-                  {/* Restricted Fields (Disabled) */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Vendor ID</label>
-                    <input type="text" value={vendor?.id || vendor?._id || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Owner Name</label>
-                    <input type="text" value={vendor?.ownerFullName || vendor?.name || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Restaurant Name</label>
-                    <input type="text" value={vendor?.restaurantName || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Restaurant Address</label>
-                    <input type="text" value={vendor?.restaurantAddress || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Primary Email</label>
-                    <input type="email" value={vendor?.email || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Primary Phone</label>
-                    <input type="text" value={vendor?.phone || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                  {/* Restricted Field (Disabled) */}
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-light)', marginBottom: '6px', fontWeight: '500' }}>Vendor ID</label>
+                    <input type="text" value={vendor?.id || vendor?._id || ''} disabled style={{ ...inputStyle, background: '#f5f5f6', color: '#93959f', cursor: 'not-allowed' }} />
                   </div>
 
                   {/* Editable Fields */}
-                  <div style={{ gridColumn: '1 / -1', marginTop: '16px', borderTop: '1px solid var(--sw-border)', paddingTop: '16px' }}>
-                    <h4 style={{ margin: '0 0 16px 0', fontSize: '14px' }}>Editable Details</h4>
-                  </div>
-
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-dark)', marginBottom: '4px', fontWeight: 'bold' }}>Contact Email</label>
-                    <input type="email" value={formData.contactEmail} onChange={e => setFormData({...formData, contactEmail: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid var(--sw-border)', borderRadius: '4px' }} />
+                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-dark)', marginBottom: '6px', fontWeight: 'bold' }}>Owner Name</label>
+                    <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={inputStyle} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-dark)', marginBottom: '4px', fontWeight: 'bold' }}>WhatsApp Number</label>
-                    <input type="text" value={formData.whatsappNumber} onChange={e => setFormData({...formData, whatsappNumber: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid var(--sw-border)', borderRadius: '4px' }} />
+                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-dark)', marginBottom: '6px', fontWeight: 'bold' }}>Restaurant Name</label>
+                    <input type="text" value={formData.restaurantName} onChange={e => setFormData({...formData, restaurantName: e.target.value})} style={inputStyle} />
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-dark)', marginBottom: '6px', fontWeight: 'bold' }}>Restaurant Address</label>
+                    <input type="text" value={formData.restaurantAddress} onChange={e => setFormData({...formData, restaurantAddress: e.target.value})} style={inputStyle} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-dark)', marginBottom: '4px', fontWeight: 'bold' }}>Food Type</label>
-                    <select value={formData.foodType} onChange={e => setFormData({...formData, foodType: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid var(--sw-border)', borderRadius: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-dark)', marginBottom: '6px', fontWeight: 'bold' }}>Primary Email</label>
+                    <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-dark)', marginBottom: '6px', fontWeight: 'bold' }}>Primary Phone</label>
+                    <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={inputStyle} />
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-dark)', marginBottom: '6px', fontWeight: 'bold' }}>Food Type</label>
+                    <select value={formData.foodType} onChange={e => setFormData({...formData, foodType: e.target.value})} style={{ ...inputStyle, cursor: 'pointer', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131313%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px top 50%', backgroundSize: '12px auto' }}>
                       <option value="">Select...</option>
                       <option value="Veg">Veg Only</option>
                       <option value="Non-Veg">Non-Veg Only</option>
                       <option value="Both">Both Veg & Non-Veg</option>
                     </select>
                   </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-dark)', marginBottom: '4px', fontWeight: 'bold' }}>FSSAI Number</label>
-                    <input type="text" value={formData.fssaiNumber} onChange={e => setFormData({...formData, fssaiNumber: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid var(--sw-border)', borderRadius: '4px' }} />
-                  </div>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '32px' }}>
-                  <button type="submit" className="sw-btn" style={{ padding: '10px 24px' }}>Save Changes</button>
-                  <button type="button" className="sw-btn sw-btn-dark" onClick={handleLogout}>LOGOUT</button>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+                  <button type="submit" className="sw-btn" style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: 'bold' }}>SAVE CHANGES</button>
+                  <button type="button" className="sw-btn sw-btn-dark" style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: 'bold' }} onClick={handleLogout}>LOGOUT</button>
                 </div>
               </form>
             </div>
