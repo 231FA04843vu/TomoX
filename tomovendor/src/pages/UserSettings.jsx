@@ -147,6 +147,18 @@ function UserSettings() {
             <div>
               <form onSubmit={async (e) => {
                 e.preventDefault();
+
+                // Validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (formData.email && !emailRegex.test(formData.email)) {
+                  alert('Please enter a valid email address');
+                  return;
+                }
+                if (formData.phone && !/^[0-9]{10}$/.test(formData.phone)) {
+                  alert('Phone number must be exactly 10 digits');
+                  return;
+                }
+
                 try {
                   const res = await fetch(`${import.meta.env.VITE_API || 'http://localhost:5000'}/api/vendor-auth/me`, {
                     method: 'PUT',

@@ -58,13 +58,46 @@ function Onboarding() {
 
   const handleSaveAndProceed = () => {
     // Validate current step before proceeding
-    if (step === 1 && (!formData.ownerFullName || !formData.restaurantName || !formData.restaurantAddress || !formData.contactEmail)) {
-      showToast('Please fill all required basic details', 'error');
-      return;
+    if (step === 1) {
+      if (!formData.ownerFullName || !formData.restaurantName || !formData.restaurantAddress || !formData.contactEmail) {
+        showToast('Please fill all required basic details', 'error');
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.contactEmail)) {
+        showToast('Please enter a valid email address', 'error');
+        return;
+      }
+      if (formData.whatsappNumber && !/^[0-9]{10}$/.test(formData.whatsappNumber)) {
+        showToast('WhatsApp number must be exactly 10 digits', 'error');
+        return;
+      }
     }
-    if (step === 2 && (!formData.panNumber || !formData.bankIfsc || !formData.bankAccount || !formData.fssaiNumber || !formData.panImage)) {
-      showToast('Please fill all required documents and upload PAN', 'error');
-      return;
+    if (step === 2) {
+      if (!formData.panNumber || !formData.bankIfsc || !formData.bankAccount || !formData.fssaiNumber || !formData.panImage) {
+        showToast('Please fill all required documents and upload PAN', 'error');
+        return;
+      }
+      if (!/^[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}$/.test(formData.panNumber)) {
+        showToast('Invalid PAN Number format (e.g. ABCDE1234F)', 'error');
+        return;
+      }
+      if (formData.gstin && !/^[A-Za-z0-9]{15}$/.test(formData.gstin)) {
+        showToast('GSTIN must be exactly 15 alphanumeric characters', 'error');
+        return;
+      }
+      if (!/^[A-Za-z]{4}0[A-Za-z0-9]{6}$/.test(formData.bankIfsc)) {
+        showToast('Invalid Bank IFSC Code format', 'error');
+        return;
+      }
+      if (!/^[0-9]{9,18}$/.test(formData.bankAccount)) {
+        showToast('Bank Account Number must be between 9 and 18 digits', 'error');
+        return;
+      }
+      if (!/^[0-9]{14}$/.test(formData.fssaiNumber)) {
+        showToast('FSSAI Number must be exactly 14 digits', 'error');
+        return;
+      }
     }
     if (step === 3 && (!formData.costForTwo || !formData.menuFile)) {
       showToast('Please provide cost for two and upload menu', 'error');
