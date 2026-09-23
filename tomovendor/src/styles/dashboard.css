@@ -253,18 +253,29 @@ body {
 }
 
 .sw-icon-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.08);
   border: none;
   color: white;
   font-size: 18px;
   cursor: pointer;
   position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sw-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .sw-notification-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -2px;
+  right: -2px;
   background: var(--sw-red);
   color: white;
   font-size: 10px;
@@ -275,6 +286,7 @@ body {
   justify-content: center;
   border-radius: 50%;
   font-weight: bold;
+  border: 2px solid var(--sw-sidebar-bg);
 }
 
 .sw-notification-dropdown-container {
@@ -304,11 +316,22 @@ body {
 }
 
 .sw-profile-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.08);
   border: none;
   color: white;
   font-size: 20px;
   cursor: pointer;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sw-profile-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .sw-profile-dropdown {

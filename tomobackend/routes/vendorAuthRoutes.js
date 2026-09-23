@@ -197,4 +197,24 @@ router.put('/me', authVendor, async (req, res) => {
   }
 });
 
+router.delete('/me', authVendor, async (req, res) => {
+  try {
+    const vendorId = req.vendorId;
+    
+    // Find and delete the vendor
+    const vendor = await Vendor.findByIdAndDelete(vendorId);
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+    
+    // Delete the associated restaurant to remove it from the customer app
+    await Restaurant.findOneAndDelete({ vendorId });
+    
+    res.json({ message: 'Account and associated restaurant deleted successfully' });
+  } catch (err) {
+    console.error("Delete account error:", err);
+    res.status(500).json({ message: 'Failed to delete account' });
+  }
+});
+
 module.exports = router;

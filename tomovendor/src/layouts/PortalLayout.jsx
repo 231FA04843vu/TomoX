@@ -114,12 +114,12 @@ function PortalLayout() {
 
           <div className="sw-topbar-right">
             <button className="sw-icon-btn" onClick={() => navigate('/help')} title="Help & FAQs">
-              <i className="fas fa-question-circle" style={{ color: '#93959f' }}></i>
+              <i className="fas fa-question-circle"></i>
             </button>
             
             <div className="sw-notification-dropdown-container">
               <button className="sw-icon-btn" title="Notifications">
-                <i className="fas fa-bell" style={{ color: '#93959f' }}></i>
+                <i className="fas fa-bell"></i>
                 <span className="sw-notification-badge">1</span>
               </button>
               <div className="sw-notification-dropdown">
@@ -131,7 +131,7 @@ function PortalLayout() {
             </div>
             
             <div className="sw-profile-dropdown-container">
-              <button className="sw-profile-btn" style={{ color: '#93959f' }}>
+              <button className="sw-profile-btn">
                 <i className="fas fa-user-circle"></i>
               </button>
               <div className="sw-profile-dropdown">

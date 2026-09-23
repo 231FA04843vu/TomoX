@@ -85,6 +85,32 @@ function UserSettings() {
     navigate('/login');
   };
 
+  const handleDeleteAccount = async () => {
+    const confirmDelete = window.confirm(
+      "WARNING: Are you sure you want to permanently delete your account and remove your restaurant from the app? This action CANNOT be undone."
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API || 'http://localhost:5000'}/api/vendor-auth/me`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('vendorToken')}`
+        }
+      });
+      if (res.ok) {
+        alert("Your account has been successfully deleted.");
+        handleLogout();
+      } else {
+        const data = await res.json();
+        alert(`Failed to delete account: ${data.message || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting account. Please try again later.");
+    }
+  };
+
   const inputStyle = {
     width: '100%', 
     padding: '10px 12px', 
@@ -198,6 +224,37 @@ function UserSettings() {
                   <button type="button" className="sw-btn sw-btn-dark" style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: 'bold' }} onClick={handleLogout}>LOGOUT</button>
                 </div>
               </form>
+
+              {/* Danger Zone & Store Controls */}
+              <div style={{ marginTop: '40px', borderTop: '1px solid var(--sw-border)', paddingTop: '24px' }}>
+                <h3 style={{ fontSize: '15px', color: 'var(--sw-red)', marginBottom: '16px' }}>Danger Zone & Store Controls</h3>
+                
+                <div style={{ border: '1px solid #f5c6cb', backgroundColor: '#f8d7da', borderRadius: '4px', padding: '16px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#721c24', display: 'block' }}>Temporarily Close Store</span>
+                      <span style={{ fontSize: '11px', color: '#721c24' }}>
+                        To temporarily close your store and stop receiving new orders, use the ON/OFF toggle switch located at the top-left of the top bar (next to your restaurant name).
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ border: '1px solid var(--sw-border)', borderRadius: '4px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--sw-text-dark)', display: 'block' }}>Delete Vendor Account</span>
+                    <span style={{ fontSize: '11px', color: 'var(--sw-text-light)' }}>
+                      Permanently delete your account, menu, and remove your restaurant from the customer app.
+                    </span>
+                  </div>
+                  <button 
+                    onClick={handleDeleteAccount}
+                    style={{ background: 'var(--sw-red)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+                  >
+                    DELETE ACCOUNT
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <div>
