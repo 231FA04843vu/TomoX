@@ -57,12 +57,25 @@ const RestaurantCard = memo(function RestaurantCard({ restaurant }) {
   return (
     <div
       className="restaurant-card"
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
+      onClick={restaurant.isOnline !== false ? handleClick : undefined}
+      onKeyDown={restaurant.isOnline !== false ? handleKeyDown : undefined}
       role="button"
-      tabIndex={0}
+      tabIndex={restaurant.isOnline !== false ? 0 : -1}
       aria-label={`${name} — ${cuisineText}`}
+      style={{
+        filter: restaurant.isOnline === false ? 'grayscale(100%) opacity(0.6)' : 'none',
+        cursor: restaurant.isOnline === false ? 'not-allowed' : 'pointer',
+        position: 'relative'
+      }}
     >
+      {restaurant.isOnline === false && (
+        <div style={{
+          position: 'absolute', top: '10px', right: '10px', background: 'red', color: 'white',
+          padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', zIndex: 10
+        }}>
+          Currently Offline
+        </div>
+      )}
       {/* Image with overlay offer badge */}
       <div className="restaurant-image-wrapper">
         <img

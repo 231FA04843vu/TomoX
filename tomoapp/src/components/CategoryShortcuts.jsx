@@ -1,22 +1,15 @@
 import React, { memo, useCallback, useRef } from "react";
-import tiffinsImg from "../assets/categories/tiffins.jpg";
-import lunchImg from "../assets/categories/lunch.jpg";
-import cafesImg from "../assets/categories/cafes.jpg";
-import drinksImg from "../assets/categories/drinks.jpg";
-import snacksImg from "../assets/categories/snacks.jpg";
-import pizzasImg from "../assets/categories/pizzas.jpg";
-import burgersImg from "../assets/categories/burgers.jpg";
-import kfcImg from "../assets/categories/kfc.jpg";
 
 const shortcuts = [
-  { label: "Tiffins", image: tiffinsImg },
-  { label: "Lunch", image: lunchImg },
-  { label: "Cafes", image: cafesImg },
-  { label: "Drinks", image: drinksImg },
-  { label: "Snacks", image: snacksImg },
-  { label: "Pizzas", image: pizzasImg },
-  { label: "Burgers", image: burgersImg },
-  { label: "KFC Foods", image: kfcImg },
+  { label: "Pizza", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1674029856/PC_Creative%20refresh/3D_bau/banners_new/Pizza.png" },
+  { label: "North Indian", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1675667625/PC_Creative%20refresh/North_Indian_4.png" },
+  { label: "Chinese", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1674029848/PC_Creative%20refresh/3D_bau/banners_new/Chinese.png" },
+  { label: "Burger", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1674029845/PC_Creative%20refresh/3D_bau/banners_new/Burger.png" },
+  { label: "Rolls", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1674029858/PC_Creative%20refresh/3D_bau/banners_new/Rolls.png" },
+  { label: "Biryani", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1675667625/PC_Creative%20refresh/Biryani_2.png" },
+  { label: "Cakes", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1674029845/PC_Creative%20refresh/3D_bau/banners_new/Cakes.png" },
+  { label: "Dosa", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1674029850/PC_Creative%20refresh/3D_bau/banners_new/Dosa.png" },
+  { label: "Idli", image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_288,h_360/v1674029846/PC_Creative%20refresh/3D_bau/banners_new/Idli.png" },
 ];
 
 const CategoryShortcuts = memo(function CategoryShortcuts() {
@@ -88,7 +81,6 @@ const CategoryShortcuts = memo(function CategoryShortcuts() {
                 fetchPriority={index < 4 ? "high" : "low"}
               />
             </span>
-            <span className="shortcut-label">{item.label}</span>
           </button>
         ))}
       </section>

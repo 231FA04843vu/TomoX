@@ -47,6 +47,12 @@ function Orders({ user }) {
   const [ordersStatus, setOrdersStatus] = useState(null);
   const [deletingOrderId, setDeletingOrderId] = useState(null);
   const [pendingDeleteOrderId, setPendingDeleteOrderId] = useState(null);
+  
+  // Review Modal State
+  const [reviewOrderId, setReviewOrderId] = useState(null);
+  const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
 
   const authToken = useMemo(() => localStorage.getItem("token"), []);
@@ -83,6 +89,43 @@ function Orders({ user }) {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const submitReview = async () => {
+    if (!reviewOrderId || !authToken) return;
+    setIsSubmittingReview(true);
+    
+    const orderToReview = orders.find(o => o._id === reviewOrderId);
+    if (!orderToReview) return;
+
+    try {
+      const response = await fetch(`${API_COMPANY}/api/reviews`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}` 
+        },
+        body: JSON.stringify({
+          orderId: orderToReview._id,
+          restaurantId: orderToReview.restaurantId,
+          vendorId: orderToReview.vendorId,
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+          customerName: user?.name || "Customer"
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to submit review");
+
+      setOrdersStatus({ type: "success", message: "Review submitted successfully!" });
+      setReviewOrderId(null);
+      setReviewData({ rating: 5, comment: '' });
+    } catch (err) {
+      setOrdersStatus({ type: "error", message: err.message || "Failed to submit review" });
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -275,6 +318,7 @@ function Orders({ user }) {
           {orders.map((order) => {
             const normalizedStatus = (order.status || "pending").toLowerCase();
             const currentStep = getOrderCurrentStep(normalizedStatus);
+            const isDelivered = normalizedStatus === "completed" || normalizedStatus === "delivered";
 
             return (
               <article key={order._id} className="order-card">
@@ -300,7 +344,7 @@ function Orders({ user }) {
                     const isCompleted =
                       normalizedStatus === "rejected"
                         ? stepNumber === 1 || stepNumber === 2
-                        : stepNumber < currentStep || normalizedStatus === "delivered" || normalizedStatus === "completed";
+                        : stepNumber < currentStep || isDelivered;
                     const isHiddenAfterReject = normalizedStatus === "rejected" && stepNumber > 2;
 
                     if (isHiddenAfterReject) return null;
@@ -371,15 +415,27 @@ function Orders({ user }) {
                   </div>
                 </div>
 
-                <div className="order-card-actions" style={{ justifyContent: "space-between" }}>
-                  <button
-                    type="button"
-                    className="order-delete-btn"
-                    onClick={() => downloadInvoice(order)}
-                    style={{ color: "#0369a1", borderColor: "#bae6fd", borderStyle: "solid" }}
-                  >
-                    <i className="fas fa-file-invoice"></i> Download Invoice
-                  </button>
+                <div className="order-card-actions" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      type="button"
+                      className="order-delete-btn"
+                      onClick={() => downloadInvoice(order)}
+                      style={{ color: "#0369a1", borderColor: "#bae6fd", borderStyle: "solid" }}
+                    >
+                      <i className="fas fa-file-invoice"></i> Download Invoice
+                    </button>
+                    {isDelivered && (
+                      <button
+                        type="button"
+                        className="order-delete-btn"
+                        onClick={() => setReviewOrderId(order._id)}
+                        style={{ color: "#c2410c", borderColor: "#fed7aa", borderStyle: "solid" }}
+                      >
+                        <i className="fas fa-star"></i> Rate Order
+                      </button>
+                    )}
+                  </div>
 
                   <button
                     type="button"
@@ -404,6 +460,7 @@ function Orders({ user }) {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
       {pendingDeleteOrderId && (
         <div className="account-modal-backdrop" role="presentation" onClick={() => setPendingDeleteOrderId(null)}>
           <div className="account-modal order-delete-confirm-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
@@ -436,6 +493,51 @@ function Orders({ user }) {
                     </button>
                   </div>
                 </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {reviewOrderId && (
+        <div className="account-modal-backdrop" role="presentation" onClick={() => setReviewOrderId(null)}>
+          <div className="account-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="account-modal-header">
+              <div>
+                <span className="modal-kicker">Feedback</span>
+                <h3>Rate your order</h3>
+              </div>
+              <button type="button" className="account-modal-close" onClick={() => setReviewOrderId(null)}>
+                Cancel
+              </button>
+            </div>
+            <div className="account-modal-body">
+              <section className="account-panel" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '32px', marginBottom: '16px', color: '#c2410c' }}>
+                  {[1,2,3,4,5].map(num => (
+                    <i 
+                      key={num} 
+                      className={num <= reviewData.rating ? "fas fa-star" : "far fa-star"}
+                      style={{ cursor: 'pointer', margin: '0 4px' }}
+                      onClick={() => setReviewData({...reviewData, rating: num})}
+                    ></i>
+                  ))}
+                </div>
+                <textarea 
+                  placeholder="Tell us what you liked (or didn't like)..." 
+                  value={reviewData.comment}
+                  onChange={(e) => setReviewData({...reviewData, comment: e.target.value})}
+                  style={{ width: '100%', height: '100px', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '16px', resize: 'none' }}
+                />
+                <button 
+                  className="account-cta" 
+                  onClick={submitReview}
+                  disabled={isSubmittingReview}
+                  style={{ width: '100%', background: '#c2410c', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                </button>
               </section>
             </div>
           </div>

@@ -10,7 +10,67 @@ const normalizeNotificationPreferences = (raw) => ({
   sms: raw?.sms !== false,
 });
 
-// ✅ Vendor Login Route
+// ✅ Vendor OTP Routes
+router.post('/send-otp', (req, res) => {
+  const { phone } = req.body;
+  console.log("==============================");
+  console.log("🚀 Send OTP API Hit");
+  console.log("➡️ Phone:", phone);
+  console.log("==============================");
+  // Mock sending OTP
+  res.json({ success: true, message: 'OTP sent successfully' });
+});
+
+router.post('/verify-otp', async (req, res) => {
+  const { phone, otp } = req.body;
+  console.log("==============================");
+  console.log("🚀 Verify OTP API Hit");
+  console.log("➡️ Phone:", phone, "OTP:", otp);
+  console.log("==============================");
+
+  if (otp !== '111111') {
+    return res.status(401).json({ message: 'Invalid OTP' });
+  }
+
+  try {
+    const vendor = await Vendor.findOne({ phone });
+    console.log("🔍 Vendor found by phone:", vendor);
+
+    if (!vendor) {
+      // User not found -> go to onboarding
+      return res.json({
+        isNewUser: true,
+        phone,
+      });
+    }
+
+    const token = jwt.sign(
+      { _id: vendor._id, email: vendor.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    console.log("🔐 Token Generated for:", vendor.email);
+
+    res.json({
+      isNewUser: false,
+      token,
+      vendor: {
+        _id: vendor._id,
+        name: vendor.name,
+        email: vendor.email,
+        phone: vendor.phone || "",
+        notificationPreferences: normalizeNotificationPreferences(vendor.notificationPreferences),
+      },
+    });
+
+  } catch (err) {
+    console.error("💥 Server Error:", err);
+    res.status(500).json({ message: 'Server error during OTP verification' });
+  }
+});
+
+// ✅ Legacy Vendor Login Route (Email/Password)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 

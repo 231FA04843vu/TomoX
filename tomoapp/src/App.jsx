@@ -248,6 +248,14 @@ function App() {
           );
         }
       });
+
+      socket.on("restaurant-status-changed", (payload) => {
+        if (payload?.restaurantId) {
+          setRestaurants(prev => prev.map(r => 
+            r._id === payload.restaurantId ? { ...r, isOnline: payload.isOnline } : r
+          ));
+        }
+      });
     });
 
     return () => {

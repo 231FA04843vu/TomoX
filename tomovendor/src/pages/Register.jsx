@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaInfoCircle } from 'react-icons/fa';
 import { Toast, useToast } from '../components/Toast';
+import AuthLayout from '../layouts/AuthLayout';
 
 const API = import.meta.env.VITE_API;
 
@@ -73,59 +74,111 @@ function Register() {
   };
 
   return (
-    <div className="vx-auth">
+    <AuthLayout>
       <Toast toasts={toasts} removeToast={removeToast} />
       
-      <div className="vx-auth-card vx-fade-in">
-        <div className="vx-auth-head">
-          <div className="vx-auth-badge"><i className="fas fa-rocket"></i></div>
-          <h1>Launch Vendor Profile</h1>
-          <p>Onboard your restaurant and activate your digital sales pipeline.</p>
+      <div className="auth-card-container vx-fade-in">
+        <h2 className="auth-card-title">Apply Now</h2>
+        <div className="auth-card-subtitle">
+          Provide your details to list your restaurant
+          <FaInfoCircle size={16} color="#7e808c" />
         </div>
 
-        <form className="vx-stack" onSubmit={handleSubmit}>
-          <div>
-            <label className="vx-label">Restaurant Name</label>
-            <input className="vx-input" name="name" value={form.name} onChange={handleChange} placeholder="Urban Spice Kitchen" required />
+        <form onSubmit={handleSubmit}>
+          <div className="auth-input-group">
+            <input 
+              name="name" 
+              value={form.name} 
+              onChange={handleChange} 
+              placeholder="Restaurant Name" 
+              disabled={loading} 
+              required 
+            />
           </div>
 
-          <div>
-            <label className="vx-label">Email Address</label>
-            <input className="vx-input" type="email" name="email" value={form.email} onChange={handleChange} placeholder="owner@restaurant.com" required />
+          <div className="auth-input-group">
+            <input 
+              type="email" 
+              name="email" 
+              value={form.email} 
+              onChange={handleChange} 
+              placeholder="Email address" 
+              disabled={loading} 
+              required 
+            />
           </div>
 
-          <div>
-            <label className="vx-label">Password</label>
-            <div style={{ position: 'relative' }}>
-              <input className="vx-input" type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange} placeholder="At least 6 characters" required />
-              <button type="button" onClick={() => setShowPassword((prev) => !prev)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', color: '#9aa7d4', cursor: 'pointer' }}>
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
+          <div className="auth-input-group">
+            <input 
+              type={showPassword ? 'text' : 'password'} 
+              name="password" 
+              value={form.password} 
+              onChange={handleChange} 
+              placeholder="Enter password (min 6 chars)" 
+              disabled={loading} 
+              style={{ paddingRight: '46px' }} 
+              required 
+            />
+            <button 
+              type="button" 
+              aria-label={showPassword ? 'Hide password' : 'Show password'} 
+              onClick={() => setShowPassword((prev) => !prev)} 
+              style={{ 
+                position: 'absolute', 
+                right: '16px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                border: 'none', 
+                background: 'transparent', 
+                color: '#7e808c', 
+                cursor: 'pointer', 
+                padding: 0, 
+                display: 'inline-flex'
+              }}
+            >
+              {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+            </button>
           </div>
 
-          <div>
-            <label className="vx-label">Phone</label>
-            <input className="vx-input" name="phone" value={form.phone} onChange={handleChange} placeholder="+91 98xxxxxx10" required />
+          <div className="auth-input-group">
+            <input 
+              name="phone" 
+              value={form.phone} 
+              onChange={handleChange} 
+              placeholder="Phone number" 
+              disabled={loading} 
+              required 
+            />
           </div>
 
-          <div>
-            <label className="vx-label">FSSAI / License Proof</label>
-            <input className="vx-input" type="file" name="proof" onChange={handleChange} accept=".jpg,.jpeg,.png,.pdf" required />
-            {preview ? <img src={preview} alt="Proof preview" style={{ marginTop: '10px', maxHeight: '120px', borderRadius: '10px' }} /> : null}
+          <div className="auth-input-group">
+            <label style={{display: 'block', fontSize: '13px', color: '#7e808c', marginBottom: '8px', fontWeight: '600'}}>FSSAI / License Proof (Required)</label>
+            <input 
+              type="file" 
+              name="proof" 
+              onChange={handleChange} 
+              accept=".jpg,.jpeg,.png,.pdf" 
+              disabled={loading} 
+              required 
+              style={{ padding: '12px' }}
+            />
+            {preview ? <img src={preview} alt="Proof preview" style={{ marginTop: '10px', maxHeight: '80px', borderRadius: '6px' }} /> : null}
           </div>
 
-          <button className="vx-btn vx-btn-primary" type="submit" disabled={loading}>
-            <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-circle-check'}`}></i>
-            {loading ? 'Creating account...' : 'Create Vendor Account'}
+          <button className="auth-submit-btn" type="submit" disabled={loading || !form.name || !form.email || !form.password || !form.phone || !form.proof}>
+            {loading ? 'Please wait...' : 'Submit Application'}
           </button>
         </form>
 
-        <p className="vx-auth-foot">
-          Already registered? <Link to="/login">Sign in</Link>
+        <p className="auth-terms">
+          By registering, I agree to TomoX's <a href="#">terms & conditions</a>
         </p>
+
+        <Link to="/login" className="auth-switch-link">
+          Already a partner? Login here
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
 

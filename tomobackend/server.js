@@ -142,6 +142,10 @@ app.use('/api/coupons', couponRoutes);
 const locationRoutes = require('./routes/locationRoutes');
 app.use('/api/location', locationRoutes);
 
+// Reviews
+const reviewRoutes = require('./routes/reviewRoutes');
+app.use('/api/reviews', reviewRoutes);
+
 // Support Tickets
 const supportRoutes = require("./routes/supportRoutes");
 app.use("/api/support", supportRoutes);
@@ -155,7 +159,7 @@ app.use("/api/admin-auth", adminAuthRoutes);
 
 // ✅ Health Check Route
 app.get("/", (req, res) => {
-  res.send("🚀 API is running...");
+  res.send("API is running...");
 });
 
 // 🕒 Scheduled Tasks (like cleanup)
@@ -167,5 +171,5 @@ cron.schedule("0 3 * * *", () => {
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

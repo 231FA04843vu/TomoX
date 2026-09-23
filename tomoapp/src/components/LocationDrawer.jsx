@@ -42,7 +42,7 @@ const LocationDrawer = ({ isOpen, onClose }) => {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
             debouncedQuery
-          )}&format=json&addressdetails=1&limit=5`,
+          )}&format=json&addressdetails=1&limit=5&countrycodes=in`,
           {
             headers: {
               "Accept-Language": "en-US,en;q=0.9",
@@ -62,9 +62,23 @@ const LocationDrawer = ({ isOpen, onClose }) => {
   }, [debouncedQuery]);
 
   const handleSelectLocation = (place) => {
-    let name = place.name || place.display_name.split(",")[0];
-    if (place.address && (place.address.suburb || place.address.neighbourhood || place.address.city)) {
-      name = place.address.suburb || place.address.neighbourhood || place.address.city || name;
+    let name = "";
+    if (place) {
+      const pName = place.name || (place.address && (place.address.amenity || place.address.road || place.address.neighbourhood || place.address.suburb || place.address.village));
+      let sName = "";
+      if (place.address) {
+        if (place.name || place.address.amenity || place.address.road) {
+          sName = place.address.neighbourhood || place.address.suburb || place.address.village || place.address.city || place.address.town;
+        } else {
+          sName = place.address.city || place.address.town || place.address.county || place.address.state_district;
+        }
+      }
+      
+      if (pName && sName && pName !== sName) {
+        name = `${pName}, ${sName}`;
+      } else {
+        name = pName || "Unknown Location";
+      }
     }
 
     updateLocation({
@@ -97,7 +111,25 @@ const LocationDrawer = ({ isOpen, onClose }) => {
           );
           const data = await response.json();
           if (data) {
-            let name = data.name || (data.address && (data.address.suburb || data.address.neighbourhood || data.address.city || data.address.town)) || "Current Location";
+            let name = "";
+            if (data) {
+              const pName = data.name || (data.address && (data.address.amenity || data.address.road || data.address.neighbourhood || data.address.suburb || data.address.village));
+              let sName = "";
+              if (data.address) {
+                if (data.name || data.address.amenity || data.address.road) {
+                  sName = data.address.neighbourhood || data.address.suburb || data.address.village || data.address.city || data.address.town;
+                } else {
+                  sName = data.address.city || data.address.town || data.address.county || data.address.state_district;
+                }
+              }
+              
+              if (pName && sName && pName !== sName) {
+                name = `${pName}, ${sName}`;
+              } else {
+                name = pName || "Current Location";
+              }
+            }
+
             updateLocation({
               address: name,
               fullAddress: data.display_name,
@@ -179,7 +211,7 @@ const LocationDrawer = ({ isOpen, onClose }) => {
                       </svg>
                     </div>
                     <div className="loc-result-info">
-                      <h4>{place.name || (place.address && (place.address.suburb || place.address.city || place.address.town)) || "Unknown Location"}</h4>
+                      <h4>{place.name || (place.address && (place.address.neighbourhood || place.address.suburb || place.address.city)) || "Unknown Location"}</h4>
                       <p>{place.display_name}</p>
                     </div>
                   </div>

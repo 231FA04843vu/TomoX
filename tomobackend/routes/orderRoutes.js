@@ -70,13 +70,7 @@ router.post('/', authUser, async (req, res) => {
     // Emit socket event to vendor for new order notification
     const io = req.app.get('io');
     if (io) {
-      io.to(`vendor:${vendorId}`).emit('new-order', {
-        orderId: order._id,
-        customerName: order.customerName,
-        itemCount: normalizedItems.length,
-        grandTotal: order.grandTotal,
-        createdAt: order.createdAt
-      });
+      io.to(`vendor:${vendorId}`).emit('new-order', order);
     }
 
 
@@ -232,10 +226,7 @@ router.put('/:orderId/status', authVendor, async (req, res) => {
           status: order.status,
         });
       }
-      io.to(`vendor:${order.vendorId}`).emit('order-status-updated', {
-        orderId: order._id,
-        status: order.status,
-      });
+      io.to(`vendor:${order.vendorId}`).emit('orderUpdated', order);
     }
 
     if (["accepted", "out_for_delivery", "delivered"].includes(order.status)) {

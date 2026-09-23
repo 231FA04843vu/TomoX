@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Vendor = require('../models/Vendor');
+const Restaurant = require('../models/restaurantModel');
 const jwt = require('jsonwebtoken');
 
 // ✅ Middleware to verify Vendor JWT
@@ -17,40 +17,47 @@ const verifyVendor = (req, res, next) => {
   }
 };
 
-// ✅ GET /api/vendors/menu - Get menu
+// ✅ GET /api/vendor-menu/menu - Get menu
 router.get('/menu', verifyVendor, async (req, res) => {
   try {
-    const vendor = await Vendor.findById(req.vendorId);
-    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+    const restaurant = await Restaurant.findOne({ vendorId: req.vendorId });
+    if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
 
-    res.json(vendor.menu);
+    res.json(restaurant.menu || []);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// ✅ POST /api/vendors/menu - Add menu item
+// ✅ POST /api/vendor-menu/menu - Add menu item
 router.post('/menu', verifyVendor, async (req, res) => {
-  const { name, price, image, description } = req.body;
+  const { name, price, image, description, category } = req.body;
 
-  if (!name || !price || !image) {
-    return res.status(400).json({ message: "All fields are required" });
+  if (!name || !price) {
+    return res.status(400).json({ message: "Name and price are required" });
   }
 
   try {
-    const vendor = await Vendor.findById(req.vendorId);
-    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+    const restaurant = await Restaurant.findOne({ vendorId: req.vendorId });
+    if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
 
     const newItem = {
+      id: Date.now().toString(),
       name,
-      price,
-      image,
-      description,
+      price: Number(price),
+      image: image || '',
+      description: description || '',
+      category: category || 'General',
       available: true,
     };
 
-    vendor.menu.push(newItem);
-    await vendor.save();
+    restaurant.menu.push(newItem);
+    await restaurant.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('menu-updated', { restaurantId: restaurant._id, vendorId: req.vendorId });
+    }
 
     res.status(201).json(newItem);
   } catch (err) {
@@ -58,14 +65,19 @@ router.post('/menu', verifyVendor, async (req, res) => {
   }
 });
 
-// ✅ DELETE /api/vendors/menu/:id - Delete menu item
+// ✅ DELETE /api/vendor-menu/menu/:id - Delete menu item
 router.delete('/menu/:id', verifyVendor, async (req, res) => {
   try {
-    const vendor = await Vendor.findById(req.vendorId);
-    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+    const restaurant = await Restaurant.findOne({ vendorId: req.vendorId });
+    if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
 
-    vendor.menu = vendor.menu.filter(item => item._id.toString() !== req.params.id);
-    await vendor.save();
+    restaurant.menu = restaurant.menu.filter(item => item.id !== req.params.id && item._id?.toString() !== req.params.id);
+    await restaurant.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('menu-updated', { restaurantId: restaurant._id, vendorId: req.vendorId });
+    }
 
     res.json({ message: "Item deleted" });
   } catch (err) {
@@ -73,17 +85,22 @@ router.delete('/menu/:id', verifyVendor, async (req, res) => {
   }
 });
 
-// ✅ PUT /api/vendors/menu/:id/toggle - Toggle availability
+// ✅ PUT /api/vendor-menu/menu/:id/toggle - Toggle availability
 router.put('/menu/:id/toggle', verifyVendor, async (req, res) => {
   try {
-    const vendor = await Vendor.findById(req.vendorId);
-    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+    const restaurant = await Restaurant.findOne({ vendorId: req.vendorId });
+    if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
 
-    const item = vendor.menu.id(req.params.id);
+    const item = restaurant.menu.find(i => i.id === req.params.id || i._id?.toString() === req.params.id);
     if (!item) return res.status(404).json({ message: "Menu item not found" });
 
     item.available = !item.available;
-    await vendor.save();
+    await restaurant.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('menu-updated', { restaurantId: restaurant._id, vendorId: req.vendorId });
+    }
 
     res.json({ message: "Availability toggled", available: item.available });
   } catch (err) {

@@ -1,227 +1,440 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import { Toast, useToast } from '../components/Toast';
+import '../styles/dashboard.css';
 
-const API = import.meta.env.VITE_API;
-
-const STATUS_META = {
-  pending: { className: 'warning', label: 'Pending' },
-  accepted: { className: 'info', label: 'Accepted' },
-  out_for_delivery: { className: 'info', label: 'Out for Delivery' },
-  preparing: { className: 'info', label: 'Preparing' },
-  completed: { className: 'success', label: 'Delivered' },
-  delivered: { className: 'success', label: 'Delivered' },
-  rejected: { className: 'danger', label: 'Rejected' },
-};
+const API_URL = import.meta.env.VITE_API || 'http://localhost:5000';
 
 function Orders() {
+  const [activeTab, setActiveTab] = useState('new'); // new, preparing, ready, picked_up, past
   const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const { toasts, showToast, removeToast } = useToast();
 
-  const fetchOrders = async () => {
+  const [showOrdersSetting, setShowOrdersSetting] = useState(() => {
+    return localStorage.getItem('swiggy_showOrders') !== 'false';
+  });
+
+  useEffect(() => {
+    const handleSettingsChange = () => {
+      setShowOrdersSetting(localStorage.getItem('swiggy_showOrders') !== 'false');
+    };
+    window.addEventListener('showOrdersChanged', handleSettingsChange);
+    return () => window.removeEventListener('showOrdersChanged', handleSettingsChange);
+  }, []);
+
+  const audioRef = useRef(null);
+
+  const vendorToken = localStorage.getItem('vendorToken');
+  const vendorInfo = JSON.parse(localStorage.getItem('vendorInfo') || '{}');
+
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('vendorToken');
-      const res = await axios.get(`${API}/api/orders/vendor/list`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.get(`${API_URL}/api/orders/vendor/list`, {
+        headers: { Authorization: `Bearer ${vendorToken}` }
       });
-      setOrders(res.data || []);
-    } catch (error) {
-      console.error('Orders fetch error:', error);
-      showToast('Unable to fetch orders', 'error');
+      setOrders(res.data);
+    } catch (err) {
+      console.error('Error fetching orders:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const updateStatus = async (orderId, status) => {
-    try {
-      const token = localStorage.getItem('vendorToken');
-      await axios.put(
-        `${API}/api/orders/${orderId}/status`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      showToast(`Order ${status} successfully`, 'success');
-      fetchOrders();
-    } catch (error) {
-      console.error('Order update error:', error);
-      showToast('Unable to update order', 'error');
-    }
-  };
+  }, [vendorToken]);
 
   useEffect(() => {
     fetchOrders();
 
-    // Setup socket connection for real-time updates
-    const token = localStorage.getItem('vendorToken');
-    if (!token) return;
+    // Setup Audio
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'); // Generic ding
 
-    const socket = io(API, {
-      auth: { token, isVendor: true }
+    // Setup Socket
+    const socket = io(API_URL, {
+      auth: { token: vendorToken, isVendor: true }
     });
 
-    socket.on('connect', () => {
-      console.log('✅ Connected to order notification system');
-    });
+    socket.on('connect', () => console.log('Socket connected for vendor orders'));
 
-    socket.on('new-order', (orderData) => {
-      console.log('🔔 New order received:', orderData);
-      showToast(`New order #${orderData.orderId.slice(-6)} - ₹${orderData.grandTotal}`, 'success');
+    socket.on('new-order', (order) => {
+      console.log('New Order Received via Socket:', order);
+      setOrders(prev => [order, ...prev]);
 
-      try {
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSt+zPDaizsIE161+PGpVxQKRp/g8rx1KQYrfsfw3os7CBNct+PlpVUUCkaB4PK+byQGOwAA');
-        audio.volume = 0.5;
-        audio.play().catch((e) => console.log('Audio play failed:', e));
-      } catch (e) {
-        console.log('Notification sound error:', e);
+      // Play sound
+      if (audioRef.current) {
+        audioRef.current.play().catch(e => console.log('Audio play failed', e));
       }
-
-      fetchOrders();
     });
 
-    socket.on('disconnect', () => {
-      console.log('⚠️ Disconnected from notification system');
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+    socket.on('orderUpdated', (updatedOrder) => {
+      console.log('Order Updated via Socket:', updatedOrder);
+      setOrders(prev => prev.map(o => o._id === updatedOrder._id ? updatedOrder : o));
+      if (selectedOrder && selectedOrder._id === updatedOrder._id) {
+        setSelectedOrder(updatedOrder);
+      }
     });
 
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [fetchOrders, vendorToken, selectedOrder]);
 
-  const filteredOrders = useMemo(() => {
-    let next = [...orders];
-    if (statusFilter !== 'all') next = next.filter((order) => order.status === statusFilter);
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      next = next.filter(
-        (order) =>
-          (order.customerName || '').toLowerCase().includes(q) ||
-          (order._id || '').toLowerCase().includes(q)
+  const updateOrderStatus = async (orderId, status) => {
+    try {
+      const res = await axios.put(`${API_URL}/api/orders/${orderId}/status`, { status }, {
+        headers: { Authorization: `Bearer ${vendorToken}` }
+      });
+      setOrders(prev => prev.map(o => o._id === orderId ? res.data : o));
+      if (selectedOrder && selectedOrder._id === orderId) {
+        setSelectedOrder(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Failed to update order status');
+    }
+  };
+
+  // Filter logic based on tabs
+  const getFilteredOrders = () => {
+    if (activeTab === 'past') {
+      return orders.filter(o => ['delivered', 'cancelled', 'rejected'].includes(o.status));
+    }
+
+    let filterStatus = activeTab;
+
+    return orders.filter(o => {
+      const status = o.status === 'pending' ? 'new' :
+        o.status === 'accepted' ? 'preparing' :
+          o.status === 'out_for_delivery' ? 'picked_up' :
+            o.status;
+      return status === filterStatus;
+    });
+  };
+
+  const filteredOrders = getFilteredOrders();
+
+  const tabs = [
+    { id: 'new', label: 'New' },
+    { id: 'preparing', label: 'Preparing' },
+    { id: 'ready', label: 'Ready' },
+    { id: 'picked_up', label: 'Picked Up' },
+    { id: 'past', label: 'Past Orders' }
+  ];
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const renderSidebarOrderList = () => {
+    return (
+      <div className="sw-layout-sidebar">
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--sw-border)', fontWeight: 'bold' }}>
+          {tabs.find(t => t.id === activeTab)?.label} ({filteredOrders.length})
+        </div>
+
+        {filteredOrders.length === 0 ? (
+          <div style={{ padding: '24px', textAlign: 'center', color: 'var(--sw-text-light)' }}>
+            <p>No orders here.</p>
+          </div>
+        ) : (
+          filteredOrders.map(order => (
+            <div
+              key={order._id}
+              style={{
+                padding: '16px',
+                borderBottom: '1px solid var(--sw-border)',
+                cursor: 'pointer',
+                background: selectedOrder?._id === order._id ? '#fef3e5' : 'var(--sw-card-bg)',
+                borderLeft: selectedOrder?._id === order._id ? '4px solid var(--sw-orange)' : '4px solid transparent'
+              }}
+              onClick={() => setSelectedOrder(order)}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>
+                  #{order._id.substring(order._id.length - 6).toUpperCase()}
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 'bold' }}>₹{order.grandTotal}</div>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--sw-text-light)' }}>
+                {formatDate(order.createdAt)} | {order.items?.length || 0} Items
+              </div>
+
+              <div style={{ fontSize: '12px', color: 'var(--sw-text-dark)', marginTop: '8px', fontWeight: 'bold' }}>
+                <span style={{
+                  color: (order.status === 'cancelled' || order.status === 'rejected') ? 'var(--sw-red)' :
+                    order.status === 'delivered' ? 'var(--sw-green)' : 'var(--sw-orange)'
+                }}>
+                  {order.status.replace('_', ' ').toUpperCase()}
+                </span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    );
+  };
+
+  const renderOrderDetails = () => {
+    if (!selectedOrder) {
+      return (
+        <div className="sw-layout-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--sw-bg)' }}>
+          <div className="sw-empty-state">
+            <i className="fas fa-receipt" style={{ fontSize: '64px', color: '#ccc', marginBottom: '24px' }}></i>
+            <h3>Select an Order</h3>
+            <p>Click on an order from the list to view details</p>
+          </div>
+        </div>
       );
     }
-    return next;
-  }, [orders, statusFilter, query]);
 
-  return (
-    <div className="vx-stack">
-      <Toast toasts={toasts} removeToast={removeToast} />
+    const o = selectedOrder;
 
-      <section className="vx-card vx-fade-in">
-        <div className="vx-grid vx-grid-3">
+    return (
+      <div className="sw-layout-main" style={{ background: 'var(--sw-bg)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', background: 'white', padding: '24px', borderRadius: '8px', border: '1px solid var(--sw-border)' }}>
           <div>
-            <label className="vx-label">Search Orders</label>
-            <input
-              className="vx-input"
-              placeholder="Order ID / customer"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
+            <h2 style={{ margin: 0, fontSize: '20px' }}>Order #{o._id.toUpperCase()}</h2>
+            <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: 'var(--sw-text-light)' }}>
+              {formatDate(o.createdAt)} | {o.items?.length || 0} Items, ₹{o.grandTotal} | Paid Online
+            </p>
+            <div style={{ marginTop: '12px' }}>
+              <strong>Customer:</strong> {o.customerName}
+            </div>
           </div>
 
-          <div>
-            <label className="vx-label">Status</label>
-            <select className="vx-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-              <option value="all">All</option>
-              <option value="pending">Pending</option>
-              <option value="accepted">Accepted</option>
-              <option value="out_for_delivery">Out for Delivery</option>
-              <option value="delivered">Delivered</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' }}>
+            <button className="sw-btn sw-btn-dark" style={{ background: 'transparent', color: 'var(--sw-text-dark)', border: '1px solid var(--sw-border)' }}>
+              <i className="fas fa-print"></i> Print Bill
+            </button>
 
-          <article className="vx-card" style={{ padding: '12px' }}>
-            <p style={{ margin: 0, color: '#9aa7d4', fontSize: '12px' }}>Visible Orders</p>
-            <h3 style={{ margin: '6px 0 0' }}>{filteredOrders.length}</h3>
-          </article>
+            {(o.status === 'new' || o.status === 'pending') && (
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button className="sw-btn" style={{ background: 'var(--sw-red)' }} onClick={() => updateOrderStatus(o._id, 'cancelled')}>Reject</button>
+                <button className="sw-btn" onClick={() => updateOrderStatus(o._id, 'preparing')}>Accept Order</button>
+              </div>
+            )}
+
+            {(o.status === 'preparing' || o.status === 'accepted') && (
+              <button className="sw-btn sw-btn-green" onClick={() => updateOrderStatus(o._id, 'ready')}>Food Ready</button>
+            )}
+
+            {o.status === 'ready' && (
+              <button className="sw-btn sw-btn-dark" onClick={() => updateOrderStatus(o._id, 'picked_up')}>Mark Picked Up</button>
+            )}
+
+            {o.status === 'picked_up' && (
+              <button className="sw-btn" onClick={() => updateOrderStatus(o._id, 'delivered')}>Mark Delivered</button>
+            )}
+          </div>
         </div>
-      </section>
 
-      {loading ? (
-        <div className="vx-stack" style={{ gap: '14px' }}>
-          <div className="vx-grid vx-grid-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="vx-card vx-skeleton" style={{ height: '280px' }}></div>
+        <div className="sw-setting-card" style={{ padding: '0', overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--sw-border)', background: '#fafafa' }}>
+            <h3 style={{ margin: 0, fontSize: '15px' }}>Item Details</h3>
+          </div>
+
+          <div style={{ padding: '20px' }}>
+            {o.items?.map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0', paddingBottom: '16px', marginBottom: '16px' }}>
+                <div>
+                  <span style={{ color: item.isVeg ? 'var(--sw-green)' : 'var(--sw-red)', marginRight: '8px' }}>
+                    <i className="fas fa-stop-circle" style={{ fontSize: '12px' }}></i>
+                  </span>
+                  <strong>{item.name}</strong>
+                  {item.variant && <div style={{ fontSize: '12px', color: 'var(--sw-text-light)', marginLeft: '20px' }}>{item.variant}</div>}
+                </div>
+                <div style={{ display: 'flex', gap: '32px', minWidth: '100px', justifyContent: 'flex-end' }}>
+                  <span>x {item.quantity}</span>
+                  <strong>₹{item.price * item.quantity}</strong>
+                </div>
+              </div>
             ))}
+
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', paddingTop: '8px' }}>
+              <div style={{ width: '300px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                  <span>Items Total</span>
+                  <span>₹{o.itemsSubtotal || o.grandTotal}</span>
+                </div>
+                {o.totalDiscount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', color: 'var(--sw-green)' }}>
+                    <span>Discount</span>
+                    <span>-₹{o.totalDiscount}</span>
+                  </div>
+                )}
+                {o.deliveryCharges > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                    <span>Delivery Charge</span>
+                    <span>₹{o.deliveryCharges}</span>
+                  </div>
+                )}
+                {o.gst > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                    <span>Taxes</span>
+                    <span>₹{o.gst}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--sw-border)', fontWeight: 'bold', fontSize: '16px' }}>
+                  <span>Bill Total</span>
+                  <span>₹{o.grandTotal}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      ) : filteredOrders.length === 0 ? (
-        <div className="vx-empty-state vx-fade-in">
-          <i className="fas fa-receipt" style={{ fontSize: '48px', color: '#fc8019', marginBottom: '16px' }}></i>
-          <h4>No matching orders</h4>
-          <p>Try another query or status filter.</p>
-        </div>
-      ) : (
-        <section className="vx-grid vx-grid-2 vx-fade-in" style={{ animationDelay: '0.1s' }}>
-          {filteredOrders.map((order) => {
-            const status = STATUS_META[order.status] || STATUS_META.pending;
+      </div>
+    );
+  };
+
+  const getCounts = () => {
+    const counts = { new: 0, preparing: 0, ready: 0, picked_up: 0, past: 0 };
+    orders.forEach(o => {
+      if (['delivered', 'cancelled', 'rejected'].includes(o.status)) {
+        counts.past++;
+      } else {
+        const s = o.status === 'pending' ? 'new' :
+          o.status === 'accepted' ? 'preparing' :
+            o.status === 'out_for_delivery' ? 'picked_up' :
+              o.status;
+        if (counts[s] !== undefined) counts[s]++;
+      }
+    });
+    return counts;
+  };
+
+  const counts = getCounts();
+
+  const renderManageOrders = () => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--sw-bg)' }}>
+        <div style={{ display: 'flex', padding: '0 24px', background: 'white', borderBottom: '1px solid var(--sw-border)', gap: '32px' }}>
+          {tabs.map(tab => {
+            const count = counts[tab.id] || 0;
             return (
-              <article key={order._id} className="vx-card">
-                <div className="vx-card-head">
-                  <div>
-                    <h3>Order #{(order._id || '').slice(-6)}</h3>
-                    <p>{new Date(order.createdAt).toLocaleString()}</p>
-                  </div>
-                  <span className={`vx-pill ${status.className}`}>{status.label}</span>
-                </div>
-
-                <div className="vx-stack" style={{ gap: '8px' }}>
-                  <p style={{ margin: 0 }}><strong>Customer:</strong> {order.customerName || 'Guest'}</p>
-                  <p style={{ margin: 0 }}><strong>Phone:</strong> {order.customerPhone || 'N/A'}</p>
-                  <p style={{ margin: 0 }}><strong>Total:</strong> ₹{order.grandTotal || order.totalPrice || 0}</p>
-                  {order.customerAddress && (
-                    <p style={{ margin: 0, fontSize: '13px', color: '#9aa7d4' }}><strong>Address:</strong> {order.customerAddress}</p>
-                  )}
-                </div>
-
-                <div style={{ marginTop: '12px' }}>
-                  <p className="vx-label" style={{ marginBottom: '6px' }}>Items ({order.items?.length || 0})</p>
-                  <div className="vx-card" style={{ padding: '10px', background: 'rgba(7,12,25,0.6)' }}>
-                    {(order.items || []).map((item, index) => (
-                      <div key={`${item.name}-${index}`} className="vx-row" style={{ justifyContent: 'space-between', marginBottom: index === order.items.length - 1 ? 0 : '6px' }}>
-                        <span>{item.name}</span>
-                        <span style={{ color: '#9aa7d4' }}>x{item.quantity}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="vx-row" style={{ marginTop: '12px', gap: '8px' }}>
-                  {order.status === 'pending' && (
-                    <>
-                      <button className="vx-btn vx-btn-success" onClick={() => updateStatus(order._id, 'accepted')}>
-                        <i className="fas fa-check"></i> Accept
-                      </button>
-                      <button className="vx-btn vx-btn-danger" onClick={() => updateStatus(order._id, 'rejected')}>
-                        <i className="fas fa-times"></i> Reject
-                      </button>
-                    </>
-                  )}
-                  {order.status === 'accepted' && (
-                    <button className="vx-btn vx-btn-primary" onClick={() => updateStatus(order._id, 'out_for_delivery')}>
-                      <i className="fas fa-motorcycle"></i> Mark Out for Delivery
-                    </button>
-                  )}
-                  {order.status === 'out_for_delivery' && (
-                    <button className="vx-btn vx-btn-success" onClick={() => updateStatus(order._id, 'delivered')}>
-                      <i className="fas fa-check-circle"></i> Mark Delivered
-                    </button>
-                  )}
-                </div>
-              </article>
+              <div
+                key={tab.id}
+                className={`sw-tab ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSelectedOrder(null);
+                }}
+                style={{
+                  padding: '16px 0',
+                  borderBottom: activeTab === tab.id ? '2px solid var(--sw-orange)' : '2px solid transparent',
+                  color: activeTab === tab.id ? 'var(--sw-orange)' : 'var(--sw-text-dark)',
+                  fontSize: '13px',
+                  fontWeight: activeTab === tab.id ? 'bold' : '500',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {tab.label}
+                {count > 0 && (
+                  <span style={{
+                    background: '#e9e9eb',
+                    color: '#3d4152',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    fontSize: '10px',
+                    fontWeight: 'bold'
+                  }}>
+                    {count}
+                  </span>
+                )}
+              </div>
             );
           })}
-        </section>
-      )}
+        </div>
+
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          {!showOrdersSetting ? (
+            <div className="sw-empty-state" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--sw-bg)' }}>
+              <h3 style={{ fontSize: '13px', fontWeight: '500', margin: '0 0 8px 0', color: 'var(--sw-text-dark)' }}>
+                Updates regarding new orders is disabled right now.
+              </h3>
+              <p style={{ fontSize: '13px', margin: '0 0 24px 0', color: 'var(--sw-text-dark)' }}>
+                Please go to settings if you are managing orders.
+              </p>
+              <button
+                className="sw-btn sw-btn-dark"
+                style={{ background: '#0f172a', fontSize: '12px', padding: '10px 24px', borderRadius: '4px' }}
+                onClick={() => window.location.href = '/settings'}
+              >
+                GO TO SETTINGS
+              </button>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            (() => {
+              const getEmptyStateDetails = (tab) => {
+                switch (tab) {
+                  case 'new': return {
+                    icon: "fas fa-concierge-bell",
+                    title: "No Orders!",
+                    subtitle: "New orders will appear here"
+                  };
+                  case 'preparing': return {
+                    icon: "fas fa-fire-burner",
+                    title: "No Orders!",
+                    subtitle: "Orders being prepared in your kitchen will appear here"
+                  };
+                  case 'ready': return {
+                    icon: "fas fa-box-open",
+                    title: "No Orders!",
+                    subtitle: "Orders ready for delivery executive to pick up will appear here"
+                  };
+                  case 'picked_up': return {
+                    icon: "fas fa-motorcycle",
+                    title: "No Orders!",
+                    subtitle: "Orders picked up by delivery executive will appear here"
+                  };
+                  case 'past': return {
+                    icon: "fas fa-history",
+                    title: "No Orders!",
+                    subtitle: "Your past orders will appear here"
+                  };
+                  default: return {
+                    icon: "fas fa-concierge-bell",
+                    title: "No Orders!",
+                    subtitle: "New orders will appear here"
+                  };
+                }
+              };
+              const { icon, title, subtitle } = getEmptyStateDetails(activeTab);
+              return (
+                <div className="sw-empty-state" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f5f5f6' }}>
+                  <i className={icon} style={{ fontSize: '80px', color: '#ccc', marginBottom: '24px' }}></i>
+                  <h3 style={{ fontSize: '26px', fontWeight: '800', margin: '0 0 12px 0', color: '#3d4152', letterSpacing: '-0.5px' }}>
+                    {title}
+                  </h3>
+                  <p style={{ fontSize: '14px', margin: '0', color: '#7e808c', fontWeight: '500' }}>
+                    {subtitle}
+                  </p>
+                </div>
+              );
+            })()
+          ) : (
+            <div className="sw-layout-split">
+              {renderSidebarOrderList()}
+              {renderOrderDetails()}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return <div style={{ padding: '24px', textAlign: 'center' }}>Loading Orders...</div>;
+  }
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        {renderManageOrders()}
+      </div>
     </div>
   );
 }

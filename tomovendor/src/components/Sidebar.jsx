@@ -1,72 +1,74 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 
-const Sidebar = () => {
+function Sidebar() {
   const location = useLocation();
-
+  
   const navItems = [
-    { path: '/dashboard', icon: 'fa-home', label: 'Dashboard' },
-    { path: '/orders', icon: 'fa-bag-shopping', label: 'Orders' },
-    { path: '/analytics', icon: 'fa-chart-line', label: 'Analytics' },
-  ];
-
-  const operationItems = [
-    { path: '/menu', icon: 'fa-list', label: 'Menu Studio' },
-    { path: '/restaurant-setup', icon: 'fa-store', label: 'Restaurant Setup' },
-    { path: '/profile', icon: 'fa-user-gear', label: 'Profile' },
+    { 
+      id: 'orders', 
+      label: 'ORDERS', 
+      icon: 'fas fa-check-circle', 
+      path: '/orders',
+      dropdown: [
+        { label: 'Manage Orders', path: '/orders' },
+        { label: 'Past Orders', path: '/orders?tab=past' }
+      ]
+    },
+    { id: 'growth', label: 'GROWTH', icon: 'fas fa-rupee-sign', path: '/growth' },
+    { id: 'menu', label: 'MENU', icon: 'fas fa-utensils', path: '/menu' },
+    { id: 'complaints', label: 'COMPLAINTS', icon: 'fas fa-exclamation-circle', path: '/complaints' },
+    { 
+      id: 'ratings', 
+      label: 'RATINGS', 
+      icon: 'fas fa-star', 
+      path: '/ratings'
+    },
+    { 
+      id: 'reports', 
+      label: 'REPORTS', 
+      icon: 'fas fa-chart-bar', 
+      path: '/reports',
+      dropdown: [
+        { label: 'Overview', path: '/reports' },
+        { label: 'Discount Performance Metrics', path: '/reports/discounts' },
+        { label: 'Ads Performance', path: '/reports/ads' },
+        { label: 'Food Brandverse', path: '/reports/brandverse' }
+      ]
+    },
+    { id: 'finance', label: 'FINANCE', icon: 'fas fa-wallet', path: '/finance' },
+    { id: 'help', label: 'HELP', icon: 'fas fa-question-circle', path: '/help' },
+    { id: 'manage-outlets', label: 'MANAGE OUTLETS & STAFF', icon: 'fas fa-store', path: '/manage-outlets' },
   ];
 
   return (
-    <aside className="vx-sidebar">
-      <Link to="/dashboard" className="vx-brand" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <span className="vx-brand-badge">TX</span>
-        <span>
-          <h2>TomoX Vendor</h2>
-          <p>Business Operating System</p>
-        </span>
-      </Link>
-
-      <div className="vx-nav-group">
-        <p className="vx-nav-title">Overview</p>
+    <aside className="sw-sidebar">
+      <div className="sw-logo">S</div>
+      
+      <nav className="sw-nav">
         {navItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`vx-nav-item ${location.pathname === item.path ? 'active' : ''}`}
-          >
-            <i className={`fas ${item.icon}`}></i>
-            <span>{item.label}</span>
-          </Link>
+          <div key={item.id} className={`sw-nav-item ${location.pathname.startsWith(item.path) ? 'active' : ''}`}>
+            <NavLink 
+              to={item.path} 
+              style={{ color: 'inherit', textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              <i className={item.icon}></i>
+              {item.label}
+            </NavLink>
+            
+            {/* Render Dropdown if it exists */}
+            {item.dropdown && (
+              <div className="dropdown">
+                {item.dropdown.map((sub, idx) => (
+                  <NavLink key={idx} to={sub.path}>{sub.label}</NavLink>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
-      </div>
-
-      <div className="vx-nav-group">
-        <p className="vx-nav-title">Operations</p>
-        {operationItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`vx-nav-item ${location.pathname === item.path ? 'active' : ''}`}
-          >
-            <i className={`fas ${item.icon}`}></i>
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </div>
-
-      <div className="vx-nav-group">
-        <p className="vx-nav-title">Status</p>
-        <article className="vx-card" style={{ padding: '12px' }}>
-          <p style={{ margin: '0 0 8px', color: '#98a5d2', fontSize: '12px' }}>Workspace Health</p>
-          <p style={{ margin: 0, fontWeight: 700 }}>All systems normal</p>
-          <span style={{ color: '#86efac', fontSize: '12px' }}>
-            <i className="fas fa-circle" style={{ fontSize: '8px', marginRight: '6px' }}></i>
-            Real-time sync active
-          </span>
-        </article>
-      </div>
+      </nav>
     </aside>
   );
-};
+}
 
 export default Sidebar;

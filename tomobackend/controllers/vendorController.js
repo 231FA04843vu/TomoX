@@ -4,11 +4,16 @@ const bcrypt = require('bcryptjs');
 
 exports.registerVendor = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
-    const file = req.file;
+    const {
+      name, email, password, phone,
+      ownerFullName, restaurantName, restaurantAddress, contactEmail, whatsappNumber,
+      workingDays, timings,
+      outletType, panNumber, gstin, bankIfsc, bankAccount, fssaiNumber,
+      hasPos, foodType, cuisines, costForTwo, packagingChargeType
+    } = req.body;
 
-    if (!name || !email || !password || !file) {
-      return res.status(400).json({ message: "All fields including proof file are required." });
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, Email, and Password are required." });
     }
 
     const existing = await PendingVendor.findOne({ email });
@@ -18,12 +23,41 @@ exports.registerVendor = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Process files
+    let panImage = "";
+    let menuFile = "";
+    let proofDocument = "";
+    
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        if (file.fieldname === 'panImage') panImage = file.path;
+        else if (file.fieldname === 'menuFile') menuFile = file.path;
+        else if (file.fieldname === 'proof') proofDocument = file.path; // fallback/legacy
+      });
+    }
+
+    // Parse JSON fields if they are sent as strings
+    let parsedWorkingDays = [];
+    let parsedTimings = { sameAllDays: true, timeSlots: [] };
+    let parsedCuisines = [];
+
+    try {
+      if (workingDays) parsedWorkingDays = JSON.parse(workingDays);
+      if (timings) parsedTimings = JSON.parse(timings);
+      if (cuisines) parsedCuisines = JSON.parse(cuisines);
+    } catch (e) {
+      console.log("Error parsing JSON fields:", e);
+    }
+
     const newVendor = new PendingVendor({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
-      proofDocument: file.path,
+      name, email, password: hashedPassword, phone,
+      proofDocument,
+      ownerFullName, restaurantName, restaurantAddress, contactEmail, whatsappNumber,
+      workingDays: parsedWorkingDays, timings: parsedTimings,
+      outletType, panNumber, panImage, gstin, bankIfsc, bankAccount, fssaiNumber,
+      hasPos: hasPos === 'true' || hasPos === true,
+      foodType, cuisines: parsedCuisines, costForTwo: Number(costForTwo) || 0,
+      menuFile, packagingChargeType
     });
 
     await newVendor.save();

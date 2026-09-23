@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import StatCard from '../components/ui/StatCard';
 import { Toast, useToast } from '../components/Toast';
 
 const API = import.meta.env.VITE_API;
@@ -12,176 +11,173 @@ function Dashboard() {
   const { toasts, showToast, removeToast } = useToast();
 
   const [stats, setStats] = useState(null);
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [liveOrders, setLiveOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAccepting, setIsAccepting] = useState(true);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         setLoading(true);
         const res = await axios.get(`${API}/api/dashboard/stats/${vendorId}`);
-        setStats(res.data.stats || {});
-        setRecentOrders(res.data.recentOrders || []);
+        setStats(res.data.stats || { totalOrders: 0, totalRevenue: 0, averageRating: 0 });
+        setLiveOrders(res.data.recentOrders?.filter(o => ['pending', 'accepted', 'preparing'].includes(o.status)) || []);
       } catch (error) {
         console.error('Dashboard fetch error:', error);
-        showToast('Unable to load dashboard data', 'error');
-        // Fallback to empty data
-        setStats({
-          totalOrders: 0,
-          totalRevenue: 0,
-          activeMenuItems: 0,
-          averageRating: 0,
-          orderDelta: 0,
-          revenueDelta: 0,
-          menuDelta: 0,
-          ratingDelta: 0,
-        });
+        setStats({ totalOrders: 0, totalRevenue: 0, averageRating: 0 });
+        setLiveOrders([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (vendorId) fetchDashboard();
+    if (vendorId) {
+      fetchDashboard();
+    } else {
+      console.warn('No vendorId found.');
+      setStats({ totalOrders: 0, totalRevenue: 0, averageRating: 0 });
+      setLiveOrders([]);
+      setLoading(false);
+    }
   }, [vendorId]);
 
-  const quickActions = [
-    { path: '/menu', icon: 'fa-plus', title: 'Create Dish', hint: 'Launch a new menu item with media + pricing.' },
-    { path: '/orders', icon: 'fa-bolt', title: 'Process Orders', hint: 'Move active orders through each status stage.' },
-    { path: '/analytics', icon: 'fa-chart-column', title: 'Review Growth', hint: 'Understand conversion and revenue movement.' },
-    { path: '/restaurant-setup', icon: 'fa-sliders', title: 'Brand Settings', hint: 'Manage restaurant profile and identity.' },
-  ];
-
-  const getStatusDisplay = (status) => {
-    const map = {
-      pending: { class: 'warning', label: 'Pending' },
-      accepted: { class: 'info', label: 'Accepted' },
-      preparing: { class: 'info', label: 'Preparing' },
-      completed: { class: 'success', label: 'Completed' },
-      delivered: { class: 'success', label: 'Delivered' },
-      rejected: { class: 'danger', label: 'Rejected' },
-    };
-    return map[status] || { class: 'info', label: status };
+  const handleStatusToggle = () => {
+    setIsAccepting(!isAccepting);
+    showToast(`Restaurant is now ${!isAccepting ? 'Online' : 'Offline'}`, !isAccepting ? 'success' : 'warning');
   };
 
-  const formatTimeAgo = (date) => {
-    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-    if (seconds < 60) return 'Just now';
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} mins ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hours ago`;
-    const days = Math.floor(hours / 24);
-    return `${days} days ago`;
+  const getStatusBadge = (status) => {
+    const badges = {
+      pending: { color: '#fc8019', bg: '#fff0e5', text: 'NEW' },
+      accepted: { color: '#6e52c7', bg: '#f2effa', text: 'ACCEPTED' },
+      preparing: { color: '#2b91f0', bg: '#ebf4fc', text: 'PREPARING' },
+    };
+    const b = badges[status] || { color: '#7e808c', bg: '#f1f1f6', text: status.toUpperCase() };
+    return <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', color: b.color, backgroundColor: b.bg }}>{b.text}</span>;
   };
 
   if (loading) {
     return (
-      <div className="vx-stack">
-        <div className="vx-grid vx-grid-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="vx-card vx-skeleton" style={{ height: '120px' }}></div>
-          ))}
+      <div className="partner-dash-loading">
+        <div className="vx-skeleton" style={{ height: '80px', borderRadius: '12px', marginBottom: '24px' }}></div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px' }}>
+          <div className="vx-skeleton" style={{ height: '400px', borderRadius: '12px' }}></div>
+          <div className="vx-skeleton" style={{ height: '400px', borderRadius: '12px' }}></div>
         </div>
-        <div className="vx-card vx-skeleton" style={{ height: '300px' }}></div>
-        <div className="vx-card vx-skeleton" style={{ height: '400px' }}></div>
       </div>
     );
   }
 
   return (
-    <div className="vx-stack">
+    <div className="partner-dash-wrapper vx-fade-in">
       <Toast toasts={toasts} removeToast={removeToast} />
 
-      <div className="vx-grid vx-grid-4 vx-fade-in">
-        <StatCard icon="fa-bag-shopping" label="Total Orders" value={stats?.totalOrders || 0} delta={stats?.orderDelta || 0} />
-        <StatCard 
-          icon="fa-indian-rupee-sign" 
-          label="Revenue" 
-          value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`} 
-          delta={stats?.revenueDelta || 0} 
-          tone="accent" 
-        />
-        <StatCard icon="fa-utensils" label="Menu Items" value={stats?.activeMenuItems || 0} delta={stats?.menuDelta || 0} />
-        <StatCard icon="fa-star" label="Customer Rating" value={stats?.averageRating || 0} delta={stats?.ratingDelta || 0} />
+      {/* Partner Header */}
+      <div className="partner-header-card">
+        <div>
+          <h1 className="partner-restaurant-name">{vendor?.name || 'My Restaurant'}</h1>
+          <p className="partner-restaurant-id">ID: {vendorId?.slice(-6)?.toUpperCase() || 'TX-101'}</p>
+        </div>
+
+        <div className="partner-toggle-container">
+          <span style={{ fontWeight: '600', color: isAccepting ? '#60b246' : '#7e808c' }}>
+            {isAccepting ? 'Accepting Orders' : 'Offline'}
+          </span>
+          <label className="partner-switch">
+            <input type="checkbox" checked={isAccepting} onChange={handleStatusToggle} />
+            <span className="partner-slider"></span>
+          </label>
+        </div>
       </div>
 
-      <section className="vx-card vx-fade-in" style={{ animationDelay: '0.1s' }}>
-        <div className="vx-card-head">
-          <div>
-            <h3>Action Hub</h3>
-            <p>High-impact tasks to keep your operation moving.</p>
+      <div className="partner-dash-grid">
+        {/* Left Column: Live Orders */}
+        <div className="partner-orders-col">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 className="partner-section-title">Live Orders ({liveOrders.length})</h2>
+            <Link to="/orders" className="partner-link">View All</Link>
           </div>
+
+          {liveOrders.length === 0 ? (
+            <div className="partner-empty-state">
+              <i className="fas fa-motorcycle" style={{ fontSize: '48px', color: '#d4d5d9', marginBottom: '16px' }}></i>
+              <h3 style={{ color: '#282c3f', margin: '0 0 8px' }}>No active orders</h3>
+              <p style={{ color: '#7e808c', fontSize: '14px', margin: 0 }}>Orders will appear here as soon as they are placed.</p>
+            </div>
+          ) : (
+            <div className="partner-orders-list">
+              {liveOrders.map(order => (
+                <div key={order._id} className="partner-order-card">
+                  <div className="poc-header">
+                    <div>
+                      <span className="poc-id">#{order._id?.slice(-5)?.toUpperCase() || 'N/A'}</span>
+                      <span className="poc-time">Just now</span>
+                    </div>
+                    {getStatusBadge(order.status)}
+                  </div>
+                  <div className="poc-body">
+                    <div style={{ fontWeight: '600', color: '#282c3f' }}>{order.customerName || 'Customer'}</div>
+                    <div style={{ color: '#7e808c', fontSize: '13px' }}>1x Biryani, 2x Coke</div>
+                  </div>
+                  <div className="poc-footer">
+                    <span style={{ fontWeight: '700', color: '#282c3f' }}>₹{order.total || 0}</span>
+                    {order.status === 'pending' ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button className="poc-btn reject">Reject</button>
+                        <button className="poc-btn accept">Accept</button>
+                      </div>
+                    ) : (
+                      <button className="poc-btn mark-ready">Mark Ready</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="vx-grid vx-grid-2">
-          {quickActions.map((action) => (
-            <Link
-              key={action.path}
-              to={action.path}
-              className="vx-action-card"
-            >
-              <div className="vx-row" style={{ justifyContent: 'space-between' }}>
-                <h4 style={{ margin: 0, fontSize: '15px' }}>
-                  <i className={`fas ${action.icon}`} style={{ marginRight: '8px', color: '#fc8019' }}></i>
-                  {action.title}
-                </h4>
-                <i className="fas fa-arrow-right" style={{ color: '#9aa7d4' }}></i>
-              </div>
-              <p style={{ margin: '8px 0 0', color: '#9aa7d4', fontSize: '13px' }}>{action.hint}</p>
+        {/* Right Column: Today's Perf & Quick Links */}
+        <div className="partner-sidebar-col">
+          <h2 className="partner-section-title" style={{ marginBottom: '16px' }}>Today's Performance</h2>
+
+          <div className="partner-stat-card">
+            <div className="psc-icon"><i className="fas fa-indian-rupee-sign"></i></div>
+            <div className="psc-content">
+              <div className="psc-label">Revenue</div>
+              <div className="psc-value">₹{(stats?.totalRevenue || 0).toLocaleString()}</div>
+            </div>
+          </div>
+
+          <div className="partner-stat-card">
+            <div className="psc-icon" style={{ background: '#f2effa', color: '#6e52c7' }}><i className="fas fa-bag-shopping"></i></div>
+            <div className="psc-content">
+              <div className="psc-label">Orders Delivered</div>
+              <div className="psc-value">{stats?.totalOrders || 0}</div>
+            </div>
+          </div>
+
+          <div className="partner-stat-card">
+            <div className="psc-icon" style={{ background: '#ebf4fc', color: '#2b91f0' }}><i className="fas fa-star"></i></div>
+            <div className="psc-content">
+              <div className="psc-label">Customer Rating</div>
+              <div className="psc-value">{stats?.averageRating || '4.5'} <i className="fas fa-star" style={{ fontSize: '12px', color: '#fc8019' }}></i></div>
+            </div>
+          </div>
+
+          <h2 className="partner-section-title" style={{ margin: '32px 0 16px' }}>Quick Actions</h2>
+          <div className="partner-quick-links">
+            <Link to="/menu" className="pql-item">
+              <i className="fas fa-utensils"></i> Manage Menu
             </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="vx-card vx-fade-in" style={{ animationDelay: '0.2s' }}>
-        <div className="vx-card-head">
-          <div>
-            <h3>Live Order Snapshot</h3>
-            <p>{vendor?.name || 'Your restaurant'} latest high-priority transactions.</p>
+            <Link to="/restaurant-setup" className="pql-item">
+              <i className="fas fa-store"></i> Edit Profile
+            </Link>
+            <Link to="/analytics" className="pql-item">
+              <i className="fas fa-chart-line"></i> View Insights
+            </Link>
           </div>
         </div>
-
-        {recentOrders.length === 0 ? (
-          <div className="vx-empty-state">
-            <i className="fas fa-receipt" style={{ fontSize: '48px', color: '#fc8019', marginBottom: '16px' }}></i>
-            <h4>No Orders Yet</h4>
-            <p>Orders will appear here once customers start placing them.</p>
-          </div>
-        ) : (
-          <table className="vx-table">
-            <thead>
-              <tr>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Items</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentOrders.map((order) => {
-                const statusInfo = getStatusDisplay(order.status);
-                return (
-                  <tr key={order.id}>
-                    <td style={{ fontWeight: 700 }}>{order.orderNumber}</td>
-                    <td>{order.customer}</td>
-                    <td>{order.items}</td>
-                    <td style={{ fontWeight: 700 }}>₹{order.amount}</td>
-                    <td>
-                      <span className={`vx-pill ${statusInfo.class}`}>
-                        <i className="fas fa-circle" style={{ fontSize: '8px' }}></i>
-                        {statusInfo.label}
-                      </span>
-                    </td>
-                    <td>{formatTimeAgo(order.time)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </section>
+      </div>
     </div>
   );
 }

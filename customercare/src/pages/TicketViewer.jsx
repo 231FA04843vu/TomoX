@@ -55,22 +55,52 @@ export default function TicketViewer() {
         <table className="ticket-table">
           <thead>
             <tr>
+              <th>Sender</th>
               <th>Name</th>
               <th>Email</th>
-              <th>Order ID</th>
+              <th>Issue / Order</th>
               <th>Message</th>
               <th>Status</th>
-              <th>Change Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {tickets.map((ticket) => (
               <tr key={ticket._id}>
+                <td>
+                  <span style={{ 
+                    padding: '4px 8px', 
+                    borderRadius: '4px', 
+                    fontSize: '12px', 
+                    fontWeight: 'bold',
+                    background: ticket.senderType === 'vendor' ? '#e3f2fd' : '#f3e5f5',
+                    color: ticket.senderType === 'vendor' ? '#1565c0' : '#7b1fa2'
+                  }}>
+                    {ticket.senderType === 'vendor' ? 'Vendor' : 'Customer'}
+                  </span>
+                </td>
                 <td>{ticket.name}</td>
                 <td>{ticket.email}</td>
-                <td>{ticket.orderId}</td>
+                <td>
+                  {ticket.senderType === 'vendor' ? (
+                    <div><strong>{ticket.issueType || 'General'}</strong></div>
+                  ) : (
+                    <div>Order: {ticket.orderId}</div>
+                  )}
+                </td>
                 <td>{ticket.message}</td>
-                <td>{ticket.status}</td>
+                <td>
+                  <span style={{
+                    padding: '4px 8px', 
+                    borderRadius: '4px', 
+                    fontSize: '12px', 
+                    fontWeight: 'bold',
+                    background: ticket.status === 'resolved' ? '#e8f5e9' : ticket.status === 'pending' ? '#fff3e0' : '#ffebee',
+                    color: ticket.status === 'resolved' ? '#2e7d32' : ticket.status === 'pending' ? '#ef6c00' : '#c62828'
+                  }}>
+                    {ticket.status}
+                  </span>
+                </td>
                 <td>
                   {ticket.status !== "resolved" && (
                     <button
