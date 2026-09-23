@@ -8897,3 +8897,165 @@ textarea:focus {
   gap: 6px;
 }
 
+/* =========================================
+   COMPREHENSIVE MOBILE RESPONSIVENESS (TomoApp)
+========================================= */
+@media (max-width: 768px) {
+  /* Header Adjustments */
+  .site-header {
+    padding: 0 12px;
+    gap: 12px;
+  }
+  .header-content-swiggy {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .nav-link {
+    font-size: 0 !important; /* Hide text */
+    padding: 8px !important;
+    gap: 0 !important;
+  }
+  .nav-link i, .nav-link svg {
+    font-size: 20px !important;
+    margin: 0 !important;
+  }
+  .offer-badge-swiggy, .header-location-type, .location-caret {
+    display: none !important;
+  }
+  .header-location-city {
+    font-size: 13px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+  .logo-image {
+    width: 32px !important;
+    height: 48px !important;
+  }
+  
+  /* Grids */
+  .restaurant-section {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    gap: 12px;
+    padding: 0 16px 30px;
+  }
+  .restaurant-image-wrapper {
+    height: 120px;
+  }
+  .restaurant-name {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .restaurant-meta {
+    font-size: 11px;
+  }
+  
+  /* Menu Page */
+  .sw-menu-page {
+    padding: 16px 16px 100px;
+  }
+  .sw-hero-image-container img {
+    height: 160px;
+  }
+  .sw-deals-carousel {
+    gap: 8px;
+  }
+  .sw-deal-card {
+    min-width: 160px;
+    padding: 8px;
+  }
+  .sw-item-media {
+    width: 100px;
+    height: 96px;
+  }
+  .sw-item-info {
+    padding-right: 12px;
+  }
+  .sw-item-title {
+    font-size: 14px;
+  }
+  .sw-item-price {
+    font-size: 13px;
+  }
+  .sw-item-desc {
+    font-size: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .sw-add-btn {
+    width: 90px;
+    height: 32px;
+    font-size: 14px;
+    bottom: -12px;
+  }
+  
+  /* Shortcuts / Banner */
+  .category-section {
+    padding: 16px 16px 0;
+  }
+  .section-title {
+    font-size: 18px;
+  }
+  .shortcut-image {
+    width: 100px;
+    height: 120px;
+  }
+  .full-width-banner {
+    padding: 0 16px;
+  }
+  .banner-slide-container {
+    min-height: 120px;
+  }
+  
+  /* Account/Support Overrides */
+  .account-layout-swiggy {
+    flex-direction: column;
+    height: auto;
+    margin: 0 12px 24px;
+  }
+  .account-sidebar-swiggy {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 12px;
+  }
+  .account-sidebar-swiggy button {
+    padding: 8px 16px;
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+  }
+  .account-sidebar-swiggy button.active {
+    border-left-color: transparent;
+    border-bottom-color: #282c3f;
+  }
+  .account-content-swiggy {
+    padding: 16px;
+  }
+  .order-restaurant-info-swiggy {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .restaurant-section {
+    grid-template-columns: 1fr !important; /* Stack completely */
+  }
+  .restaurant-image-wrapper {
+    height: 180px;
+  }
+  
+  .loc-drawer {
+    width: 100%;
+  }
+  .auth-drawer {
+    width: 100%;
+  }
+}

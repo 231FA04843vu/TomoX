@@ -480,3 +480,140 @@ body {
 .sw-btn-green:hover {
   background: #509e3a;
 }
+
+/* =========================================
+   RESPONSIVE DESIGN (Mobile & Tablet)
+========================================= */
+@media (max-width: 768px) {
+  .sw-shell {
+    flex-direction: column; /* Main content above, nav below */
+  }
+  
+  /* Sidebar becomes Bottom Navigation */
+  .sw-sidebar {
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    padding: 0;
+    border-right: none;
+    border-top: 1px solid var(--sw-darker);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+  }
+  
+  .sw-logo {
+    display: none; /* Hide logo in bottom nav */
+  }
+  
+  .sw-nav {
+    flex-direction: row;
+    height: 100%;
+    justify-content: space-around;
+    gap: 0;
+  }
+  
+  .sw-nav-item {
+    padding: 0;
+    flex: 1;
+    font-size: 9px;
+  }
+  
+  .sw-nav-item i {
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  
+  .sw-nav-item.active {
+    border-left: none;
+    border-top: 3px solid var(--sw-orange);
+    background-color: transparent;
+  }
+
+  .sw-nav-item .dropdown {
+    bottom: 100%;
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .sw-main {
+    padding-bottom: 60px; /* Space for bottom nav */
+    height: calc(100vh - 60px);
+  }
+  
+  /* Topbar Adjustments */
+  .sw-topbar {
+    padding: 0 12px;
+    height: 56px;
+  }
+  
+  .sw-topbar-title {
+    display: none; /* Hide section title to save space */
+  }
+  
+  .sw-topbar-left > div:nth-child(2) {
+    display: none; /* Hide divider */
+  }
+  
+  .sw-store-selector {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+  
+  .sw-store-info h2 {
+    font-size: 13px !important;
+  }
+  
+  .sw-store-info p {
+    font-size: 9px !important;
+  }
+  
+  .sw-topbar-right {
+    gap: 8px;
+  }
+  
+  .sw-icon-btn, .sw-profile-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .sw-notification-dropdown, .sw-profile-dropdown {
+    right: 0;
+    top: 45px;
+  }
+  
+  /* General Layouts */
+  .sw-layout-split {
+    flex-direction: column;
+  }
+  
+  .sw-layout-sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--sw-border);
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  
+  .sw-layout-main {
+    padding: 16px;
+  }
+  
+  .sw-settings-container {
+    padding: 12px;
+  }
+  
+  .sw-setting-card {
+    padding: 16px;
+  }
+
+  /* Force inline grids to single column */
+  .sw-setting-card form > div:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+}
+
