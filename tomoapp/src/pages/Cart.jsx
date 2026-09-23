@@ -133,10 +133,7 @@ const Cart = ({ user }) => {
       setIsCalculatingDistance(false);
     }
   };
-
-  const [isCouponDrawerOpen, setIsCouponDrawerOpen] = useState(false);
   const [isAddressDrawerOpen, setIsAddressDrawerOpen] = useState(false);
-
   const fetchAddresses = async () => {
     if (!token) return;
     try {
