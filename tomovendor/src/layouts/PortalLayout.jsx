@@ -105,9 +105,9 @@ function PortalLayout() {
               </div>
               <div className="sw-store-info">
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '15px' }}>
-                  {vendor.name || 'Sip N SliceD'} 
+                  {vendor.restaurantName || vendor.name || 'Sip N SliceD'} 
                 </h2>
-                <p style={{ color: '#93959f', fontSize: '11px' }}>{vendor.address || 'Address not provided'} (Vendor ID : {vendor.id || vendor._id || 'N/A'})</p>
+                <p style={{ color: '#93959f', fontSize: '11px' }}>{vendor.restaurantAddress || vendor.address || 'Address not provided'} (Vendor ID : {vendor.id || vendor._id || 'N/A'})</p>
               </div>
             </div>
           </div>

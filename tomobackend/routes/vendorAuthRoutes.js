@@ -63,16 +63,13 @@ router.post('/verify-otp', async (req, res) => {
 
     console.log("🔐 Token Generated for:", vendor.email);
 
+    const vendorObj = vendor.toObject();
+    delete vendorObj.password;
+
     res.json({
       isNewUser: false,
       token,
-      vendor: {
-        _id: vendor._id,
-        name: vendor.name,
-        email: vendor.email,
-        phone: vendor.phone || "",
-        notificationPreferences: normalizeNotificationPreferences(vendor.notificationPreferences),
-      },
+      vendor: vendorObj,
     });
 
   } catch (err) {
@@ -126,15 +123,12 @@ router.post('/login', async (req, res) => {
 
     console.log("🔐 Token Generated:", token);
 
+    const vendorObj = vendor.toObject();
+    delete vendorObj.password;
+
     res.json({
       token,
-      vendor: {
-        _id: vendor._id,
-        name: vendor.name,
-        email: vendor.email,
-        phone: vendor.phone || "",
-        notificationPreferences: normalizeNotificationPreferences(vendor.notificationPreferences),
-      },
+      vendor: vendorObj,
     });
 
     console.log("✅ Login Successful for:", email);
