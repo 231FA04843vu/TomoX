@@ -4,6 +4,7 @@ const Vendor = require('../models/Vendor');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const authVendor = require('../middleware/authVendor');
+const PendingVendor = require('../models/PendingVendor');
 
 const normalizeNotificationPreferences = (raw) => ({
   email: raw?.email !== false,
@@ -37,6 +38,12 @@ router.post('/verify-otp', async (req, res) => {
     console.log("🔍 Vendor found by phone:", vendor);
 
     if (!vendor) {
+      // Check if they are pending approval
+      const pendingVendor = await PendingVendor.findOne({ phone });
+      if (pendingVendor) {
+        return res.status(403).json({ message: 'Your vendor account is pending admin approval. Please wait for an email confirmation.' });
+      }
+
       // User not found -> go to onboarding
       return res.json({
         isNewUser: true,
@@ -84,6 +91,10 @@ router.post('/login', async (req, res) => {
     console.log("🔍 Vendor found:", vendor);
 
     if (!vendor) {
+      const pendingVendor = await PendingVendor.findOne({ email });
+      if (pendingVendor) {
+        return res.status(403).json({ message: 'Your vendor account is pending admin approval. Please wait for an email confirmation.' });
+      }
       return res.status(404).json({ message: 'Vendor not found' });
     }
 

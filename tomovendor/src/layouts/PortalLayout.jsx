@@ -107,7 +107,7 @@ function PortalLayout() {
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '15px' }}>
                   {vendor.name || 'Sip N SliceD'} 
                 </h2>
-                <p style={{ color: '#93959f', fontSize: '11px' }}>Kothapet & Dilsukhnagar, Gayatri nagar, Hyderabad (Swiggy ID : {vendor.id || vendor._id || '976075'}) | Closes at 12:00 am, Tomorrow</p>
+                <p style={{ color: '#93959f', fontSize: '11px' }}>{vendor.address || 'Address not provided'} (Vendor ID : {vendor.id || vendor._id || 'N/A'})</p>
               </div>
             </div>
           </div>
