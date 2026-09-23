@@ -36,7 +36,7 @@ const RestaurantCard = memo(function RestaurantCard({ restaurant }) {
   const { _id, name, cuisine, logo, rating = 4.5, location } = restaurant;
   const logoUrl = normalizeAssetUrl(logo);
 
-  const deliveryTime = DELIVERY_TIMES[hashIndex(_id || name || "", DELIVERY_TIMES.length)];
+  const deliveryTime = restaurant.calculatedEta || DELIVERY_TIMES[hashIndex(_id || name || "", DELIVERY_TIMES.length)];
   const offerLabel = OFFER_LABELS[hashIndex((name || "") + (_id || ""), OFFER_LABELS.length)];
   const cuisineText = Array.isArray(cuisine) ? cuisine.join(", ") : cuisine;
 

@@ -1,11 +1,13 @@
 import React from 'react';
 import './PageLoader.css';
 
+import loaderImg from '../assets/tomox-loader.jpg';
+
 const PageLoader = () => {
   return (
     <div className="tomox-loader-wrapper">
       <div className="scooter-container">
-        <i className="fas fa-motorcycle scooter-icon"></i>
+        <img src={loaderImg} alt="TomoX Loading" className="scooter-icon img-scooter" />
         <div className="wind-lines">
           <span className="wind-line"></span>
           <span className="wind-line"></span>

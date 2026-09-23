@@ -27,7 +27,7 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 router.get('/', async (req, res) => {
   try {
     const { lat, lon, radius = 10 } = req.query;
-    let restaurants = await Restaurant.find();
+    let restaurants = await Restaurant.find().lean();
 
     // If customer location is provided, filter restaurants by distance
     if (lat && lon) {
@@ -49,8 +49,22 @@ router.get('/', async (req, res) => {
         );
 
         // Include only if within radius
-        return distance <= maxDistance;
+        if (distance <= maxDistance) {
+          const basePrepTime = 10;
+          const minsPerKm = 5; // e.g. 1km takes 5 mins
+          const totalMins = Math.round(basePrepTime + (distance * minsPerKm));
+          restaurant.computedDistance = distance.toFixed(1);
+          restaurant.calculatedEta = `${totalMins}–${totalMins + 5} mins`;
+          return true;
+        }
+        return false;
       });
+    } else {
+      // If no location provided, fallback ETA
+      restaurants = restaurants.map(r => ({
+        ...r,
+        calculatedEta: "25–30 mins"
+      }));
     }
 
     res.json(restaurants);

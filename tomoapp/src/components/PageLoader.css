@@ -16,25 +16,13 @@
   margin-bottom: 24px;
 }
 
-.scooter-icon {
-  font-size: 72px;
-  color: var(--color-primary, #c44f21);
+.img-scooter {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: multiply; /* Blends the white background into the transparent container */
   animation: rideBounce 0.5s infinite alternate;
   z-index: 2;
-}
-
-/* Add a little box to the back of the motorcycle to make it look like delivery */
-.scooter-icon::after {
-  content: "";
-  position: absolute;
-  left: -15px;
-  top: 15px;
-  width: 30px;
-  height: 30px;
-  background-color: #333;
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 2px #555;
-  z-index: 1;
 }
 
 .wind-lines {
