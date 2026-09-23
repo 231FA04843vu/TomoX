@@ -145,15 +145,7 @@ router.get('/me', authVendor, async (req, res) => {
       return res.status(404).json({ message: 'Vendor not found' });
     }
 
-    res.json({
-      vendor: {
-        _id: vendor._id,
-        name: vendor.name,
-        email: vendor.email,
-        phone: vendor.phone || "",
-        notificationPreferences: normalizeNotificationPreferences(vendor.notificationPreferences),
-      },
-    });
+    res.json({ vendor });
   } catch (err) {
     res.status(500).json({ message: 'Failed to load vendor profile' });
   }
@@ -161,39 +153,35 @@ router.get('/me', authVendor, async (req, res) => {
 
 router.put('/me', authVendor, async (req, res) => {
   try {
-    const { name, email, phone, notificationPreferences } = req.body || {};
+    const updateData = req.body || {};
     const vendor = await Vendor.findById(req.vendorId);
     if (!vendor) {
       return res.status(404).json({ message: 'Vendor not found' });
     }
 
-    if (email && email !== vendor.email) {
-      const exists = await Vendor.findOne({ email, _id: { $ne: vendor._id } });
-      if (exists) {
-        return res.status(400).json({ message: 'Email already in use' });
+    // Explicitly prevent updating restricted fields per user request
+    const restrictedFields = ['_id', 'id', 'email', 'password', 'phone', 'restaurantAddress', 'ownerFullName', 'name', 'restaurantName'];
+    
+    for (const key in updateData) {
+      if (!restrictedFields.includes(key)) {
+        if (key === 'notificationPreferences' && typeof updateData[key] === 'object') {
+          vendor.notificationPreferences = {
+            email: updateData[key].email !== false,
+            sms: updateData[key].sms !== false,
+          };
+        } else {
+          vendor[key] = updateData[key];
+        }
       }
-      vendor.email = email;
-    }
-
-    if (name !== undefined) vendor.name = name;
-    if (phone !== undefined) vendor.phone = phone;
-    if (notificationPreferences && typeof notificationPreferences === 'object') {
-      vendor.notificationPreferences = {
-        email: notificationPreferences.email !== false,
-        sms: notificationPreferences.sms !== false,
-      };
     }
 
     const saved = await vendor.save();
-    res.json({
-      vendor: {
-        _id: saved._id,
-        name: saved.name,
-        email: saved.email,
-        phone: saved.phone || "",
-        notificationPreferences: normalizeNotificationPreferences(saved.notificationPreferences),
-      },
-    });
+    
+    // Convert to plain object and remove password
+    const savedObj = saved.toObject();
+    delete savedObj.password;
+    
+    res.json({ vendor: savedObj });
   } catch (err) {
     res.status(500).json({ message: 'Failed to update vendor profile' });
   }

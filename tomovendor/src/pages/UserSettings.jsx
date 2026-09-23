@@ -7,6 +7,13 @@ function UserSettings() {
   const navigate = useNavigate();
   const vendor = JSON.parse(localStorage.getItem('vendorInfo') || '{}');
   
+  const [formData, setFormData] = useState({
+    contactEmail: vendor?.contactEmail || '',
+    whatsappNumber: vendor?.whatsappNumber || '',
+    foodType: vendor?.foodType || '',
+    fssaiNumber: vendor?.fssaiNumber || ''
+  });
+
   const [showOrders, setShowOrders] = useState(() => {
     return localStorage.getItem('swiggy_showOrders') !== 'false'; // default true
   });
@@ -47,19 +54,89 @@ function UserSettings() {
         <div style={{ padding: '24px' }}>
           {activeTab === 'User Profile' ? (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--sw-border)', borderRadius: '4px', overflow: 'hidden', marginBottom: '24px' }}>
-                <div style={{ background: '#f5f5f6', padding: '12px 16px', color: 'var(--sw-text-light)', fontSize: '13px', borderRight: '1px solid var(--sw-border)' }}>
-                  Login ID
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const res = await fetch(`${import.meta.env.VITE_API || 'http://localhost:5000'}/api/auth-vendor/me`, {
+                    method: 'PUT',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${localStorage.getItem('vendorToken')}`
+                    },
+                    body: JSON.stringify(formData)
+                  });
+                  if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('vendorInfo', JSON.stringify(data.vendor));
+                    alert('Profile updated successfully!');
+                  } else {
+                    alert('Failed to update profile');
+                  }
+                } catch (err) {
+                  console.error(err);
+                  alert('Error updating profile');
+                }
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                  {/* Restricted Fields (Disabled) */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Vendor ID</label>
+                    <input type="text" value={vendor?.id || vendor?._id || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Owner Name</label>
+                    <input type="text" value={vendor?.ownerFullName || vendor?.name || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Restaurant Name</label>
+                    <input type="text" value={vendor?.restaurantName || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Restaurant Address</label>
+                    <input type="text" value={vendor?.restaurantAddress || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Primary Email</label>
+                    <input type="email" value={vendor?.email || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-light)', marginBottom: '4px' }}>Primary Phone</label>
+                    <input type="text" value={vendor?.phone || ''} disabled style={{ width: '100%', padding: '10px', background: '#f5f5f6', border: '1px solid var(--sw-border)', borderRadius: '4px', color: '#93959f' }} />
+                  </div>
+
+                  {/* Editable Fields */}
+                  <div style={{ gridColumn: '1 / -1', marginTop: '16px', borderTop: '1px solid var(--sw-border)', paddingTop: '16px' }}>
+                    <h4 style={{ margin: '0 0 16px 0', fontSize: '14px' }}>Editable Details</h4>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-dark)', marginBottom: '4px', fontWeight: 'bold' }}>Contact Email</label>
+                    <input type="email" value={formData.contactEmail} onChange={e => setFormData({...formData, contactEmail: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid var(--sw-border)', borderRadius: '4px' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-dark)', marginBottom: '4px', fontWeight: 'bold' }}>WhatsApp Number</label>
+                    <input type="text" value={formData.whatsappNumber} onChange={e => setFormData({...formData, whatsappNumber: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid var(--sw-border)', borderRadius: '4px' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-dark)', marginBottom: '4px', fontWeight: 'bold' }}>Food Type</label>
+                    <select value={formData.foodType} onChange={e => setFormData({...formData, foodType: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid var(--sw-border)', borderRadius: '4px' }}>
+                      <option value="">Select...</option>
+                      <option value="Veg">Veg Only</option>
+                      <option value="Non-Veg">Non-Veg Only</option>
+                      <option value="Both">Both Veg & Non-Veg</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--sw-text-dark)', marginBottom: '4px', fontWeight: 'bold' }}>FSSAI Number</label>
+                    <input type="text" value={formData.fssaiNumber} onChange={e => setFormData({...formData, fssaiNumber: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid var(--sw-border)', borderRadius: '4px' }} />
+                  </div>
                 </div>
-                <div style={{ padding: '12px 16px', fontWeight: 'bold' }}>
-                  {vendor?.id || vendor?._id || '#9032002938'}
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '32px' }}>
+                  <button type="submit" className="sw-btn" style={{ padding: '10px 24px' }}>Save Changes</button>
+                  <button type="button" className="sw-btn sw-btn-dark" onClick={handleLogout}>LOGOUT</button>
                 </div>
-              </div>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: 'var(--sw-orange)', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold' }}>Change Password?</span>
-                <button className="sw-btn sw-btn-dark" onClick={handleLogout}>LOGOUT</button>
-              </div>
+              </form>
             </div>
           ) : (
             <div>
