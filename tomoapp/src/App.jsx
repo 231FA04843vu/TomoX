@@ -117,34 +117,15 @@ function App() {
 
 
 
-  useEffect(() => {
-    const getUserLocation = () => {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          resolve(null); // Not supported
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-          (err) => resolve(null), // On deny or error, just return null so we fetch all or nothing
-          { timeout: 8000 }
-        );
-      });
-    };
+  const { location: userLocation } = useLocationContext();
 
+  useEffect(() => {
     const loadInitialData = async () => {
       setIsLoading(true);
 
       let locationParams = "";
-      try {
-        const coords = await getUserLocation();
-        if (coords) {
-          locationParams = `?lat=${coords.lat}&lon=${coords.lon}&radius=10`;
-        } else {
-          console.warn("Location denied or unavailable. You may not see location-filtered results.");
-        }
-      } catch (err) {
-        console.warn("Location error:", err);
+      if (userLocation && userLocation.lat && userLocation.lon) {
+        locationParams = `?lat=${userLocation.lat}&lon=${userLocation.lon}&radius=10`;
       }
 
       const dataPromise = Promise.all([
@@ -172,7 +153,7 @@ function App() {
     };
 
     loadInitialData();
-  }, []);
+  }, [userLocation]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
