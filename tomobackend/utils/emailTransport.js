@@ -27,6 +27,12 @@ const getSmtpTransporter = () => {
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_SECURE,
+    pool: true,
+    maxConnections: 1,
+    maxMessages: 100,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 15000,
     auth: {
       user: EMAIL_USER,
       pass: EMAIL_PASS,
