@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import PageLoader from "../components/PageLoader";
+import AddressDrawer from "../components/AddressDrawer";
 import "../styles/pageLoader.css";
 
 const API_COMPANY = import.meta.env.VITE_API_COMPANY;
@@ -178,6 +179,21 @@ const Checkout = ({ user }) => {
     }
   };
 
+  const [isAddressDrawerOpen, setIsAddressDrawerOpen] = useState(false);
+
+  const fetchAddresses = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_COMPANY}/api/me/addresses`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setAddresses(data.addresses || []);
+    } catch (err) {
+      setAddresses([]);
+    }
+  };
+
   useEffect(() => {
     if (!token) {
       setIsLoading(false);
@@ -186,16 +202,7 @@ const Checkout = ({ user }) => {
     setIsLoading(true);
     
     // Fetch addresses
-    fetch(`${API_COMPANY}/api/me/addresses`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setAddresses(data.addresses || []);
-      })
-      .catch(() => {
-        setAddresses([]);
-      });
+    fetchAddresses();
     
     // Fetch available coupons
     fetch(`${API_COMPANY}/api/coupons/active`, {
@@ -457,9 +464,9 @@ const Checkout = ({ user }) => {
       dispatch({ type: "CLEAR_CART" });
       setOrderComplete(true);
       setStatus({ type: "success", message: "Order placed successfully." });
-      // Navigate to orders page after successful order placement
+      // Navigate to tracking page after successful order placement
       setTimeout(() => {
-        navigate("/orders");
+        navigate(`/track/${data.order._id || data._id || data.orderId}`);
       }, 1500);
     } catch (error) {
       setStatus({
@@ -559,11 +566,28 @@ const Checkout = ({ user }) => {
             </div>
 
             <div className="checkout-card">
-              <h2>Delivery address</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ margin: 0 }}>Delivery address</h2>
+                <button
+                  type="button"
+                  onClick={() => setIsAddressDrawerOpen(true)}
+                  style={{
+                    background: 'none',
+                    border: '1px dashed #fc8019',
+                    color: '#fc8019',
+                    padding: '4px 12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    borderRadius: '4px'
+                  }}
+                >
+                  + ADD NEW
+                </button>
+              </div>
               {addresses.length === 0 ? (
                 <div className="checkout-address-empty">
-                  <p>Add a delivery address in your account settings.</p>
-                  <Link to="/account">Go to account</Link>
+                  <p>No saved addresses found. Click "Add New" to add a delivery address.</p>
                 </div>
               ) : (
                 <>
@@ -949,6 +973,15 @@ const Checkout = ({ user }) => {
           </aside>
         </div>
       </div>
+
+      <AddressDrawer 
+        isOpen={isAddressDrawerOpen} 
+        onClose={() => setIsAddressDrawerOpen(false)} 
+        onSave={() => {
+          setIsAddressDrawerOpen(false);
+          fetchAddresses();
+        }}
+      />
     </div>
   );
 };

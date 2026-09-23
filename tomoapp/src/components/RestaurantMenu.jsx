@@ -608,6 +608,41 @@ const RestaurantMenu = memo(() => {
         MENU
       </button>
 
+      {/* Floating Cart Bar */}
+      {cartItems.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 32px)',
+          maxWidth: '600px',
+          backgroundColor: '#60b246',
+          color: '#fff',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          cursor: 'pointer',
+          fontFamily: 'sans-serif'
+        }} onClick={() => navigate('/cart')}>
+          <div style={{ display: 'flex', flexDirection: 'column', fontWeight: 'bold' }}>
+            <span style={{ fontSize: '14px', marginBottom: '2px' }}>
+              {cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0)} ITEM{cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0) > 1 ? 'S' : ''}
+            </span>
+            <span style={{ fontSize: '14px' }}>
+              ₹{cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0)} plus taxes
+            </span>
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+            View Cart <i className="fas fa-shopping-cart" style={{ marginLeft: '8px' }}></i>
+          </div>
+        </div>
+      )}
+
       {/* Coupon Modal */}
       {selectedCoupon && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setSelectedCoupon(null)}>

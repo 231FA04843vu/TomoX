@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import PageLoader from "../components/PageLoader";
 
@@ -43,6 +43,7 @@ const getOrderCurrentStep = (status) => {
 };
 
 function Orders({ user }) {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [ordersStatus, setOrdersStatus] = useState(null);
   const [deletingOrderId, setDeletingOrderId] = useState(null);
@@ -417,6 +418,14 @@ function Orders({ user }) {
 
                 <div className="order-card-actions" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
                   <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      type="button"
+                      className="order-delete-btn"
+                      onClick={() => navigate(`/track/${order._id}`)}
+                      style={{ color: "#16a34a", borderColor: "#bbf7d0", borderStyle: "solid" }}
+                    >
+                      <i className="fas fa-map-marker-alt"></i> Track Order
+                    </button>
                     <button
                       type="button"
                       className="order-delete-btn"

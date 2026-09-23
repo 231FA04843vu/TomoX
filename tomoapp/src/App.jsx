@@ -21,6 +21,7 @@ import { normalizeAssetUrl } from "./utils/url";
 
 const Checkout = lazy(() => import(/* webpackPrefetch: true */ "./pages/Checkout"));
 const Orders = lazy(() => import("./pages/Orders"));
+const OrderTracking = lazy(() => import("./pages/OrderTracking"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 
@@ -710,6 +711,14 @@ function App() {
           element={
             <Suspense fallback={<PageLoader />}>
               <Orders user={user} />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/track/:id"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <OrderTracking user={user} />
             </Suspense>
           }
         />

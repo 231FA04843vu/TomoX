@@ -18,7 +18,6 @@ const CouponDrawer = ({
   const unavailable = availableCoupons?.filter(c => c.minOrderAmount > itemsSubtotal) || [];
 
   const renderCouponCard = (coupon, isAvailable) => {
-    const isExpanded = expandedTerms.has(coupon.code);
     const shortfall = coupon.minOrderAmount - itemsSubtotal;
 
     return (

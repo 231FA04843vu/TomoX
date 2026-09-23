@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import PageLoader from "../components/PageLoader";
 import CouponDrawer from "../components/CouponDrawer";
+import AddressDrawer from "../components/AddressDrawer";
 import { normalizeAssetUrl } from "../utils/url";
 import "../styles/pageLoader.css";
 import "../styles/secureCheckout.css";
@@ -133,18 +134,29 @@ const Cart = ({ user }) => {
     }
   };
 
+  const [isCouponDrawerOpen, setIsCouponDrawerOpen] = useState(false);
+  const [isAddressDrawerOpen, setIsAddressDrawerOpen] = useState(false);
+
+  const fetchAddresses = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_COMPANY}/api/me/addresses`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setAddresses(data.addresses || []);
+    } catch (err) {
+      setAddresses([]);
+    }
+  };
+
   useEffect(() => {
     if (!token) {
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
-    fetch(`${API_COMPANY}/api/me/addresses`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => setAddresses(data.addresses || []))
-      .catch(() => setAddresses([]));
+    fetchAddresses();
 
     fetch(`${API_COMPANY}/api/coupons/active`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -356,11 +368,11 @@ const Cart = ({ user }) => {
                 </div>
               )}
 
-              <div className="address-card-dashed" onClick={() => navigate('/account')}>
+              <div className="address-card-dashed" onClick={() => setIsAddressDrawerOpen(true)}>
                 <i className="fas fa-map-pin"></i>
                 <div>
                   <h3>Add New Address</h3>
-                  <p>{selectedAddress ? addressText : "No addresses found. Click to add one in your account settings."}</p>
+                  <p>{selectedAddress ? addressText : "No addresses found. Click to add one."}</p>
                   <button className="btn-add-new">ADD NEW</button>
                 </div>
               </div>
@@ -576,6 +588,15 @@ const Cart = ({ user }) => {
         handleApplyCoupon={handleApplyCoupon}
         couponError={couponError}
         itemsSubtotal={itemsSubtotal}
+      />
+
+      <AddressDrawer 
+        isOpen={isAddressDrawerOpen} 
+        onClose={() => setIsAddressDrawerOpen(false)} 
+        onSave={() => {
+          setIsAddressDrawerOpen(false);
+          fetchAddresses();
+        }}
       />
     </div>
   );
