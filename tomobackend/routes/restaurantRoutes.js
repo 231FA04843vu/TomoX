@@ -11,10 +11,49 @@ const Restaurant = require('../models/restaurantModel');
 const router = express.Router();
 
 
-// ✅ Customer App — Get all restaurants
+function getDistanceInKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  return R * c; // Distance in km
+}
+
+// ✅ Customer App — Get all restaurants (with optional proximity filtering)
 router.get('/', async (req, res) => {
   try {
-    const restaurants = await Restaurant.find();
+    const { lat, lon, radius = 10 } = req.query;
+    let restaurants = await Restaurant.find();
+
+    // If customer location is provided, filter restaurants by distance
+    if (lat && lon) {
+      const customerLat = parseFloat(lat);
+      const customerLon = parseFloat(lon);
+      const maxDistance = parseFloat(radius);
+
+      restaurants = restaurants.filter(restaurant => {
+        // If restaurant has no coordinates, we might want to exclude it or include it.
+        // Let's exclude it to ensure "only nearby" rule is strictly followed.
+        if (!restaurant.coordinates || restaurant.coordinates.lat == null || restaurant.coordinates.lng == null) {
+          return false;
+        }
+
+        const distance = getDistanceInKm(
+          customerLat, 
+          customerLon, 
+          restaurant.coordinates.lat, 
+          restaurant.coordinates.lng
+        );
+
+        // Include only if within radius
+        return distance <= maxDistance;
+      });
+    }
+
     res.json(restaurants);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch restaurants' });

@@ -48,9 +48,9 @@ const normalizeRestaurantPayload = (restaurant) => ({
   logo: normalizeAssetUrl(restaurant?.logo),
   menu: Array.isArray(restaurant?.menu)
     ? restaurant.menu.map((item) => ({
-        ...item,
-        image: normalizeAssetUrl(item?.image),
-      }))
+      ...item,
+      image: normalizeAssetUrl(item?.image),
+    }))
     : restaurant?.menu,
 });
 
@@ -91,10 +91,10 @@ function App() {
   const refreshUser = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-    
+
     fetch(`${API_COMPANY}/api/me`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: controller.signal,
@@ -118,11 +118,37 @@ function App() {
 
 
   useEffect(() => {
+    const getUserLocation = () => {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          resolve(null); // Not supported
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+          (err) => resolve(null), // On deny or error, just return null so we fetch all or nothing
+          { timeout: 8000 }
+        );
+      });
+    };
+
     const loadInitialData = async () => {
       setIsLoading(true);
 
+      let locationParams = "";
+      try {
+        const coords = await getUserLocation();
+        if (coords) {
+          locationParams = `?lat=${coords.lat}&lon=${coords.lon}&radius=10`;
+        } else {
+          console.warn("Location denied or unavailable. You may not see location-filtered results.");
+        }
+      } catch (err) {
+        console.warn("Location error:", err);
+      }
+
       const dataPromise = Promise.all([
-        fetch(`${API_COMPANY}/api/restaurants`).then((res) => res.json()),
+        fetch(`${API_COMPANY}/api/restaurants${locationParams}`).then((res) => res.json()),
         fetch(`${API_COMPANY}/api/coupons/active`).then((res) => res.json()),
         fetch(`${API_COMPANY}/api/banners`).then((res) => res.json()),
       ]);
@@ -162,7 +188,7 @@ function App() {
   useEffect(() => {
     let lastRefreshTime = 0;
     const REFRESH_COOLDOWN = 60000; // 60 seconds minimum between refreshes
-    
+
     const handleFocus = () => {
       const now = Date.now();
       if (now - lastRefreshTime < REFRESH_COOLDOWN) return;
@@ -178,11 +204,11 @@ function App() {
     };
 
     const handleOpenAuth = () => setIsAuthDrawerOpen(true);
-    
+
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("tomo:open-auth", handleOpenAuth);
-    
+
     return () => {
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("visibilitychange", handleVisibility);
@@ -251,7 +277,7 @@ function App() {
 
       socket.on("restaurant-status-changed", (payload) => {
         if (payload?.restaurantId) {
-          setRestaurants(prev => prev.map(r => 
+          setRestaurants(prev => prev.map(r =>
             r._id === payload.restaurantId ? { ...r, isOnline: payload.isOnline } : r
           ));
         }
@@ -388,9 +414,8 @@ function App() {
   );
 
   const matchItem = useCallback((item, restaurant) => {
-    const itemText = `${item?.name || ""} ${item?.description || ""} ${
-      restaurant?.name || ""
-    } ${Array.isArray(restaurant?.cuisine) ? restaurant.cuisine.join(" ") : ""}`
+    const itemText = `${item?.name || ""} ${item?.description || ""} ${restaurant?.name || ""
+      } ${Array.isArray(restaurant?.cuisine) ? restaurant.cuisine.join(" ") : ""}`
       .toLowerCase()
       .trim();
 
@@ -466,37 +491,37 @@ function App() {
 
     const filtered = normalizedQuery
       ? restaurants.filter((res) => {
-          const cuisineText = Array.isArray(res?.cuisine)
-            ? res.cuisine.join(" ")
-            : String(res?.cuisine || "");
-          const combined = `${res?.name || ""} ${cuisineText} ${res?.location || ""}`
-            .toLowerCase()
-            .trim();
+        const cuisineText = Array.isArray(res?.cuisine)
+          ? res.cuisine.join(" ")
+          : String(res?.cuisine || "");
+        const combined = `${res?.name || ""} ${cuisineText} ${res?.location || ""}`
+          .toLowerCase()
+          .trim();
 
-          const matchesTokens = keywordMatch(combined);
-          let itemMatch = false;
+        const matchesTokens = keywordMatch(combined);
+        let itemMatch = false;
 
-          if (Array.isArray(res?.menu)) {
-            res.menu.forEach((item) => {
-              if (!item) return;
-              if (matchItem(item, res)) {
-                itemMatch = true;
-                const key = `${res?._id || res?.name}-${item?.id || item?._id || item?.name}`;
-                if (!itemKeys.has(key)) {
-                  itemKeys.add(key);
-                  items.push({
-                    ...item,
-                    restaurantName: res?.name,
-                    restaurantId: res?._id,
-                  });
-                }
+        if (Array.isArray(res?.menu)) {
+          res.menu.forEach((item) => {
+            if (!item) return;
+            if (matchItem(item, res)) {
+              itemMatch = true;
+              const key = `${res?._id || res?.name}-${item?.id || item?._id || item?.name}`;
+              if (!itemKeys.has(key)) {
+                itemKeys.add(key);
+                items.push({
+                  ...item,
+                  restaurantName: res?.name,
+                  restaurantId: res?._id,
+                });
               }
-            });
-          }
+            }
+          });
+        }
 
-          const cuisineMatch = keywordMatch(cuisineText.toLowerCase());
-          return matchesTokens || cuisineMatch || itemMatch;
-        })
+        const cuisineMatch = keywordMatch(cuisineText.toLowerCase());
+        return matchesTokens || cuisineMatch || itemMatch;
+      })
       : restaurants;
 
     return { filteredRestaurants: filtered, matchingItems: items };
@@ -614,7 +639,7 @@ function App() {
             navigate("/");
           }}
           searchQuery={isHomePage || isSearchPage ? searchQuery : ""}
-          onSearchChange={isHomePage || isSearchPage ? setSearchQuery : () => {}}
+          onSearchChange={isHomePage || isSearchPage ? setSearchQuery : () => { }}
         />
       )}
 
@@ -737,10 +762,10 @@ function App() {
 
       {isHomePage && <Footer />}
 
-      <AuthDrawer 
-        isOpen={isAuthDrawerOpen} 
-        onClose={() => setIsAuthDrawerOpen(false)} 
-        onAuth={setUser} 
+      <AuthDrawer
+        isOpen={isAuthDrawerOpen}
+        onClose={() => setIsAuthDrawerOpen(false)}
+        onAuth={setUser}
       />
     </div>
   );

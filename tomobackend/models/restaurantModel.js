@@ -22,7 +22,11 @@ const restaurantSchema = mongoose.Schema(
     logo: { type: String, required: true },
     menu: [menuItemSchema],
     rating: { type: Number, default: 4 },
-    isOnline: { type: Boolean, default: true }
+    isOnline: { type: Boolean, default: true },
+    coordinates: {
+      lat: { type: Number },
+      lng: { type: Number }
+    }
   },
   { timestamps: true }
 );

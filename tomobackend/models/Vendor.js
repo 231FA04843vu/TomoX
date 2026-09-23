@@ -36,6 +36,10 @@ const vendorSchema = new mongoose.Schema(
     notificationPreferences: {
       email: { type: Boolean, default: true },
     },
+    coordinates: {
+      lat: { type: Number },
+      lng: { type: Number }
+    }
   },
   { timestamps: true }
 );

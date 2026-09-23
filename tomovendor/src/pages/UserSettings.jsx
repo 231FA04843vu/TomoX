@@ -13,8 +13,59 @@ function UserSettings() {
     restaurantAddress: vendor?.restaurantAddress || '',
     email: vendor?.email || '',
     phone: vendor?.phone || '',
-    foodType: vendor?.foodType || ''
+    foodType: vendor?.foodType || '',
+    coordinates: vendor?.coordinates || { lat: null, lng: null }
   });
+
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+    setIsFetchingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // Use tomo backend's location proxy to get the address
+          const apiUrl = import.meta.env.VITE_API || 'http://localhost:5000';
+          const res = await fetch(`${apiUrl}/api/location/reverse?lat=${latitude}&lon=${longitude}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.display_name) {
+              setFormData((prev) => ({
+                ...prev,
+                restaurantAddress: data.display_name,
+                coordinates: { lat: latitude, lng: longitude }
+              }));
+            }
+          } else {
+            // Fallback if reverse geocoding fails, still save coordinates
+            setFormData((prev) => ({
+              ...prev,
+              coordinates: { lat: latitude, lng: longitude }
+            }));
+            alert('Coordinates fetched, but could not resolve address.');
+          }
+        } catch (err) {
+          console.error(err);
+          // Just save coordinates if fetch fails
+          setFormData((prev) => ({
+            ...prev,
+            coordinates: { lat: latitude, lng: longitude }
+          }));
+        } finally {
+          setIsFetchingLocation(false);
+        }
+      },
+      (error) => {
+        setIsFetchingLocation(false);
+        alert('Failed to get location. Please ensure location permissions are granted.');
+      }
+    );
+  };
 
   const [showOrders, setShowOrders] = useState(() => {
     return localStorage.getItem('swiggy_showOrders') !== 'false'; // default true
@@ -71,7 +122,7 @@ function UserSettings() {
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 try {
-                  const res = await fetch(`${import.meta.env.VITE_API || 'http://localhost:5000'}/api/auth-vendor/me`, {
+                  const res = await fetch(`${import.meta.env.VITE_API || 'http://localhost:5000'}/api/vendor-auth/me`, {
                     method: 'PUT',
                     headers: {
                       'Content-Type': 'application/json',
@@ -110,8 +161,18 @@ function UserSettings() {
                     <input type="text" value={formData.restaurantName} onChange={e => setFormData({...formData, restaurantName: e.target.value})} style={inputStyle} />
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-dark)', marginBottom: '6px', fontWeight: 'bold' }}>Restaurant Address</label>
-                    <input type="text" value={formData.restaurantAddress} onChange={e => setFormData({...formData, restaurantAddress: e.target.value})} style={inputStyle} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '6px' }}>
+                      <label style={{ fontSize: '13px', color: 'var(--sw-text-dark)', fontWeight: 'bold' }}>Restaurant Address</label>
+                      <button 
+                        type="button" 
+                        onClick={handleGetLocation} 
+                        disabled={isFetchingLocation}
+                        style={{ background: 'none', border: 'none', color: '#fc8019', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <i className="fas fa-location-arrow"></i> {isFetchingLocation ? 'Locating...' : 'Use Current Location'}
+                      </button>
+                    </div>
+                    <input type="text" value={formData.restaurantAddress} onChange={e => setFormData({...formData, restaurantAddress: e.target.value})} style={inputStyle} placeholder="Enter address or use location" />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', color: 'var(--sw-text-dark)', marginBottom: '6px', fontWeight: 'bold' }}>Primary Email</label>

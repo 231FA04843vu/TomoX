@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const PendingVendor = require("../models/PendingVendor");
 const Vendor = require("../models/Vendor");
+const Restaurant = require("../models/restaurantModel");
 const nodemailer = require("nodemailer");
 const CUSTOMER_APP_URL = "https://tomox.netlify.app";
 const VENDOR_APP_URL = "https://tvendor.netlify.app";
@@ -51,6 +52,19 @@ router.post("/approve/:id", async (req, res) => {
     });
 
     await newVendor.save();
+
+    // 🚀 Auto-create a public Restaurant profile so they show up on the app
+    const newRestaurant = new Restaurant({
+      vendorId: newVendor._id,
+      name: newVendor.name,
+      location: newVendor.restaurantAddress || "Update your address in Settings",
+      cuisine: [],
+      logo: "https://images.unsplash.com/photo-1514933651103-005eec06c04b", // Default placeholder
+      isOnline: true,
+      menu: []
+    });
+    await newRestaurant.save();
+
     await PendingVendor.findByIdAndDelete(pendingVendor._id);
 
     // 📧 Send approval email when SMTP is available, but do not fail the approval itself.

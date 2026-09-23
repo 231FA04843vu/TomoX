@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const authVendor = require('../middleware/authVendor');
 const PendingVendor = require('../models/PendingVendor');
+const Restaurant = require('../models/restaurantModel');
 
 const normalizeNotificationPreferences = (raw) => ({
   email: raw?.email !== false,
@@ -160,7 +161,7 @@ router.put('/me', authVendor, async (req, res) => {
     }
 
     // Explicitly prevent updating restricted fields per user request
-    const restrictedFields = ['_id', 'id', 'email', 'password', 'phone', 'restaurantAddress', 'ownerFullName', 'name', 'restaurantName'];
+    const restrictedFields = ['_id', 'id', 'password'];
     
     for (const key in updateData) {
       if (!restrictedFields.includes(key)) {
@@ -176,6 +177,15 @@ router.put('/me', authVendor, async (req, res) => {
     }
 
     const saved = await vendor.save();
+    
+    // Sync to Restaurant model if it exists
+    const restaurant = await Restaurant.findOne({ vendorId: vendor._id });
+    if (restaurant) {
+      if (updateData.restaurantName) restaurant.name = updateData.restaurantName;
+      if (updateData.restaurantAddress) restaurant.location = updateData.restaurantAddress;
+      if (updateData.coordinates) restaurant.coordinates = updateData.coordinates;
+      await restaurant.save();
+    }
     
     // Convert to plain object and remove password
     const savedObj = saved.toObject();
