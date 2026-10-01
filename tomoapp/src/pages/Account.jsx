@@ -24,6 +24,13 @@ const Account = ({ user }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showMobileMenu, setShowMobileMenu] = useState(true);
 
+  // Mock devices for UI
+  const [loginDevices, setLoginDevices] = useState([
+    { id: 1, device: 'MacBook Pro', os: 'macOS', browser: 'Chrome', ip: '192.168.1.5', current: true, lastActive: 'Just now' },
+    { id: 2, device: 'iPhone 13', os: 'iOS 16', browser: 'Safari', ip: '192.168.1.12', current: false, lastActive: '2 hours ago' },
+    { id: 3, device: 'Windows PC', os: 'Windows 11', browser: 'Edge', ip: '10.0.0.45', current: false, lastActive: 'Yesterday' }
+  ]);
+
   const authToken = useMemo(() => localStorage.getItem("token"), []);
   const location = useLocation();
 
@@ -112,6 +119,11 @@ const Account = ({ user }) => {
     }
   };
 
+  const handleDeleteDevice = (id) => {
+    setLoginDevices(prev => prev.filter(device => device.id !== id));
+    // Here you would also call an API to invalidate that specific session token
+  };
+
   const handleViewDetails = (order) => {
     setViewingOrderDetails(order);
   };
@@ -120,6 +132,25 @@ const Account = ({ user }) => {
     setActiveTab(tab);
     setShowMobileMenu(false);
   };
+
+  // If user is not logged in, show login prompt instead of account details
+  if (!user && !authToken) {
+    return (
+      <div className="account-page-swiggy" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', background: '#f5f5f5', padding: '20px', textAlign: 'center' }}>
+        <div style={{ background: '#fff', padding: '40px 30px', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', maxWidth: '400px', width: '100%' }}>
+          <i className="far fa-user-circle" style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }}></i>
+          <h2 style={{ marginBottom: '10px', color: '#111', fontSize: '24px' }}>Please Login</h2>
+          <p style={{ color: '#666', marginBottom: '30px', fontSize: '14px' }}>You need to be logged in to view your account details, orders, and manage devices.</p>
+          <button 
+            style={{ width: '100%', padding: '14px 24px', background: '#f26522', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold' }}
+            onClick={() => window.dispatchEvent(new CustomEvent("tomo:open-auth"))}
+          >
+            LOGIN NOW
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="account-page-swiggy">
@@ -169,6 +200,10 @@ const Account = ({ user }) => {
           <button className={activeTab === 'support' ? 'active' : ''} onClick={() => handleTabClick('support')}>
             <div className="sidebar-icon-swiggy"><i className="far fa-question-circle"></i></div> Help & Support <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
           </button>
+
+          <button className={activeTab === 'devices' ? 'active' : ''} onClick={() => handleTabClick('devices')}>
+            <div className="sidebar-icon-swiggy"><i className="fas fa-laptop"></i></div> Manage Devices <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
+          </button>
           
           <button className="logout-btn-swiggy" onClick={() => {
             localStorage.removeItem('token');
@@ -185,7 +220,9 @@ const Account = ({ user }) => {
               <i className="fas fa-arrow-left"></i>
             </button>
             <h2 style={{ fontSize: '18px', margin: 0, color: '#111' }}>
-              {activeTab === 'orders' ? 'My Orders' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+              {activeTab === 'orders' ? 'My Orders' : 
+               activeTab === 'devices' ? 'Manage Devices' : 
+               activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
             </h2>
           </div>
           {activeTab === 'orders' && (
@@ -374,7 +411,44 @@ const Account = ({ user }) => {
             </div>
           )}
 
-          {activeTab !== 'orders' && activeTab !== 'addresses' && activeTab !== 'settings' && activeTab !== 'payments' && activeTab !== 'favourites' && activeTab !== 'support' && (
+          {activeTab === 'devices' && (
+            <div className="devices-section-swiggy">
+              <h2 className="section-title-swiggy" style={{ marginTop: '20px' }}>Manage Login Devices</h2>
+              <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>Review the devices currently logged into your account. Delete a device to automatically log it out.</p>
+              
+              <div className="devices-list">
+                {loginDevices.map(device => (
+                  <div key={device.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', background: '#fff', border: '1px solid #eee', borderRadius: '12px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <div style={{ fontSize: '24px', color: device.current ? '#f26522' : '#888', marginRight: '15px', width: '30px', textAlign: 'center' }}>
+                        <i className={device.device.toLowerCase().includes('iphone') ? 'fas fa-mobile-alt' : 'fas fa-laptop'}></i>
+                      </div>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '15px', color: '#333' }}>{device.device} {device.current && <span style={{ fontSize: '11px', background: '#e5f8ed', color: '#00a85a', padding: '2px 6px', borderRadius: '4px', marginLeft: '5px' }}>Current</span>}</h4>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#666' }}>{device.os} • {device.browser}</p>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#999' }}>IP: {device.ip} • Last Active: {device.lastActive}</p>
+                      </div>
+                    </div>
+                    
+                    {!device.current ? (
+                      <button 
+                        onClick={() => handleDeleteDevice(device.id)}
+                        style={{ background: '#fff5f5', color: '#e43b4f', border: '1px solid #f8d7da', borderRadius: '6px', padding: '8px 12px', fontSize: '13px', fontWeight: 'bold' }}
+                      >
+                        Delete
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+                
+                {loginDevices.length === 0 && (
+                  <p style={{ textAlign: 'center', color: '#888', marginTop: '20px' }}>No active devices found.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab !== 'orders' && activeTab !== 'addresses' && activeTab !== 'settings' && activeTab !== 'payments' && activeTab !== 'favourites' && activeTab !== 'support' && activeTab !== 'devices' && (
             <div style={{ padding: '40px', fontSize: '18px', color: '#7e808c' }}>
               Content for {activeTab} will appear here.
             </div>
