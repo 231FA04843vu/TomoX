@@ -653,6 +653,11 @@
     color: #fff !important;
     border-color: #000 !important;
   }
+  .account-sidebar-swiggy button.logout-btn-swiggy {
+    color: #e43b4f !important;
+    border-color: #f8d7da !important;
+    background: #fff5f5 !important;
+  }
   .account-sidebar-swiggy button .sidebar-icon-swiggy {
     display: none !important;
   }
@@ -719,5 +724,9 @@
 
   .addresses-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .logout-btn-swiggy {
+    color: #e43b4f !important;
   }
 }

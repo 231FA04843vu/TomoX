@@ -113,8 +113,12 @@ const Account = ({ user }) => {
       <div className="account-hero-swiggy">
         <div className="account-hero-content">
           <div className="account-hero-text">
-            <h2>Alla Vamsi Krishna</h2>
-            <p>8520004688 . allavamsikrishna33@gmail.com</p>
+            <h2>{user?.name || 'Guest User'}</h2>
+            <p>
+              {user?.phone ? `${user.phone} ` : ''}
+              {user?.phone && user?.email ? '• ' : ''}
+              {user?.email || ''}
+            </p>
           </div>
           <button className="edit-profile-btn-swiggy" onClick={() => setIsEditProfileDrawerOpen(true)}>EDIT PROFILE</button>
         </div>
@@ -142,6 +146,12 @@ const Account = ({ user }) => {
           </button>
           <button className={activeTab === 'support' ? 'active' : ''} onClick={() => setActiveTab('support')}>
             <div className="sidebar-icon-swiggy"><i className="fas fa-headset"></i></div> Customer Support
+          </button>
+          <button className="logout-btn-swiggy" onClick={() => {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+          }}>
+            <div className="sidebar-icon-swiggy"><i className="fas fa-power-off"></i></div> Logout
           </button>
         </div>
 
