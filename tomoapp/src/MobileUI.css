@@ -785,3 +785,488 @@
     opacity: 1;
   }
 }
+
+/* =========================================
+   PREMIUM MOBILE OVERRIDES (Appended)
+   ========================================= */
+@media (max-width: 768px) {
+  /* 1. Header (Home) */
+  .site-header.swiggy-header {
+    background: #fdfdfd !important;
+    padding: 10px 20px 0 !important;
+  }
+  .header-content-swiggy {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+  .header-left {
+    display: flex !important;
+    align-items: center !important;
+  }
+  .logo { display: none !important; }
+  .header-location {
+    display: flex !important;
+    align-items: center !important;
+    margin-left: 0 !important;
+    font-size: 14px !important;
+    color: #111 !important;
+    font-weight: 700 !important;
+  }
+  .header-location::before {
+    content: '\f0d1'; /* Truck */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 16px;
+    margin-right: 10px;
+    color: #111;
+  }
+  .header-location-type, .location-caret { display: none !important; }
+  .header-location-city {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    line-height: 1.2;
+  }
+  .header-location-city::before {
+    content: 'Delivery to';
+    font-size: 10px;
+    color: #888;
+    font-weight: 400;
+  }
+  /* Header Right (Bell + Cart) */
+  .mobile-notification-bell {
+    position: relative !important;
+    transform: none !important;
+    right: auto !important;
+    top: auto !important;
+    order: 2;
+    margin-left: auto;
+    margin-right: 15px;
+    color: #111 !important;
+  }
+  .mobile-notification-bell .badge {
+    display: none !important; /* Hide badge to match outline style if desired, or keep faint */
+  }
+  .swiggy-nav-links {
+    display: flex !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    order: 3;
+    overflow: visible !important;
+  }
+  .swiggy-nav-links a { display: none !important; }
+  .swiggy-nav-links a.header-cart-link {
+    display: flex !important;
+    position: relative;
+    font-size: 0 !important;
+    color: #111 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+  .swiggy-nav-links a.header-cart-link i { font-size: 20px !important; }
+  .swiggy-nav-links a.header-cart-link::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #ff7643;
+    border-radius: 50%;
+    border: 2px solid #fff;
+  }
+
+  /* 2. Title & Search (using CategoryShortcuts) */
+  .category-section {
+    position: relative;
+    padding-top: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fdfdfd !important;
+  }
+  .section-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 0 20px !important;
+    margin-bottom: 20px !important;
+    order: 1 !important;
+  }
+  .section-title {
+    font-size: 0 !important;
+    margin: 0 !important;
+  }
+  .section-title::before {
+    content: 'Hungry? ';
+    font-size: 32px;
+    font-weight: 800;
+    color: #111;
+  }
+  .section-title::after {
+    content: 'Order & Eat.';
+    font-size: 32px;
+    font-weight: 300;
+    color: #888;
+  }
+  /* Fake Search Bar using .section-nav */
+  .section-nav {
+    display: flex !important;
+    align-items: center !important;
+    background: #f5f5f7 !important;
+    border-radius: 25px !important;
+    padding: 8px 8px 8px 20px !important;
+    margin-top: 25px !important;
+    width: 100% !important;
+    position: relative;
+  }
+  .section-nav::before {
+    content: '\f002'; /* Search icon */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: #999;
+    margin-right: 12px;
+    font-size: 16px;
+  }
+  .section-nav::after {
+    content: 'Search for fast food...';
+    color: #999;
+    font-size: 14px;
+    flex: 1;
+    text-align: left;
+  }
+  .section-nav-btn:first-child { display: none !important; }
+  .section-nav-btn:last-child {
+    width: 36px !important;
+    height: 36px !important;
+    background: #111 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #fff !important;
+    margin-left: auto !important;
+  }
+  .section-nav-btn:last-child i { display: none !important; }
+  .section-nav-btn:last-child::before {
+    content: '\f1de'; /* Sliders */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 14px;
+  }
+
+  /* 3. Category Arc */
+  .category-shortcuts {
+    order: 2 !important;
+    display: flex !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    padding: 30px 20px 20px !important;
+    position: relative;
+    overflow: visible !important; /* allow arc overflow */
+    margin-top: 20px !important;
+  }
+  .category-shortcuts::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 300px;
+    background: #f5f5f7; /* Very light gray arc */
+    border-radius: 50% 50% 0 0;
+    z-index: 0;
+  }
+  .shortcut-card {
+    position: relative;
+    z-index: 1;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    width: auto !important;
+  }
+  /* Arc positioning */
+  .shortcut-card:nth-child(1), .shortcut-card:nth-child(5) { transform: translateY(25px); }
+  .shortcut-card:nth-child(2), .shortcut-card:nth-child(4) { transform: translateY(10px); }
+  .shortcut-card:nth-child(3) { transform: translateY(-5px); }
+  .shortcut-card:nth-child(n+6) { display: none !important; }
+
+  .shortcut-image {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+    margin-bottom: 8px !important;
+  }
+  .shortcut-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+  }
+  .shortcut-label {
+    font-size: 10px !important;
+    color: #888 !important;
+    font-weight: 500 !important;
+    display: block !important;
+  }
+  /* Active indicator for middle item */
+  .shortcut-card:nth-child(3) .shortcut-label {
+    color: #111 !important;
+    font-weight: 700 !important;
+  }
+  .shortcut-card:nth-child(3)::after {
+    content: '';
+    width: 16px;
+    height: 3px;
+    background: #111;
+    border-radius: 2px;
+    margin-top: 4px;
+    display: block;
+  }
+  .category-divider { display: none !important; }
+
+  /* 4. Food Grid (Restaurant Cards) */
+  .restaurant-section {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+    padding: 0 20px 100px !important;
+    background: #fdfdfd !important;
+  }
+  .restaurant-card {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fff !important;
+    border-radius: 20px !important;
+    padding: 10px 10px 15px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+    margin: 0 !important;
+    width: 100% !important;
+    position: relative;
+  }
+  .restaurant-image-wrapper {
+    height: 100px !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    margin-bottom: 15px !important;
+  }
+  .restaurant-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+  }
+  .restaurant-offer-badge {
+    position: absolute !important;
+    bottom: -10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: auto !important;
+    background: #111 !important;
+    color: #fff !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    border: none !important;
+    z-index: 2;
+  }
+  .restaurant-offline-badge { display: none !important; }
+  .restaurant-info {
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .restaurant-info-header {
+    justify-content: center !important;
+    margin-bottom: 2px !important;
+    width: 100% !important;
+  }
+  .restaurant-name {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #111 !important;
+    text-align: center !important;
+  }
+  .restaurant-heart-btn { display: none !important; }
+  .restaurant-cuisine {
+    font-size: 11px !important;
+    color: #888 !important;
+    text-align: center !important;
+    margin-bottom: 15px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+  }
+  .restaurant-location { display: none !important; }
+  .restaurant-meta {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  /* Repurpose Rating for Price */
+  .rating-section {
+    background: transparent !important;
+    color: #111 !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    align-items: baseline !important;
+  }
+  .rating-section i { display: none !important; }
+  .rating-section::before {
+    content: '$';
+    color: #ff7643;
+    font-size: 12px;
+    margin-right: 2px;
+  }
+  /* Repurpose Delivery Time for Add Button */
+  .restaurant-delivery {
+    font-size: 0 !important;
+    width: 28px !important;
+    height: 28px !important;
+    background: #fff !important;
+    border: 1px solid #eee !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #111 !important;
+  }
+  .restaurant-delivery .fa-clock::before {
+    content: '\f067' !important; /* Plus */
+    font-size: 10px !important;
+  }
+  .restaurant-meta > span:nth-child(2) { display: none !important; } /* Hide dot */
+
+  /* 5. Account Screen */
+  .account-page-swiggy {
+    background: #fdfdfd !important;
+  }
+  .account-hero-swiggy {
+    background: transparent !important;
+    border: none !important;
+    padding: 50px 20px 30px !important;
+  }
+  .account-hero-image {
+    width: 80px !important;
+    height: 80px !important;
+    border: none !important;
+    box-shadow: none !important;
+    position: relative !important;
+    overflow: visible !important;
+    margin: 0 auto 15px !important;
+  }
+  .account-hero-image img {
+    border-radius: 50% !important;
+  }
+  .account-hero-image::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: #ff7643;
+    color: #fff;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    border: 2px solid #fff;
+  }
+  .account-hero-text h2 {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #111 !important;
+  }
+  .account-hero-text p {
+    font-size: 13px !important;
+    color: #888 !important;
+  }
+  .account-layout-swiggy {
+    padding: 0 20px !important;
+  }
+  .account-sidebar-swiggy {
+    background: #fff !important;
+    border-radius: 24px !important;
+    padding: 10px 0 !important;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.03) !important;
+  }
+  .account-sidebar-swiggy button {
+    padding: 16px 20px !important;
+    border-bottom: 1px solid #f9f9f9 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #111 !important;
+  }
+  .account-sidebar-swiggy button:last-child {
+    border-bottom: none !important;
+  }
+  .account-sidebar-swiggy button .sidebar-icon-swiggy {
+    color: #888 !important;
+    font-size: 16px !important;
+    width: 24px !important;
+    margin-right: 15px !important;
+  }
+  .account-sidebar-swiggy button .chevron-icon {
+    font-size: 12px !important;
+    color: #ccc !important;
+  }
+
+  /* 6. Bottom Navigation Pill */
+  .mobile-bottom-nav {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    max-width: 400px !important;
+    background: #111 !important;
+    border-radius: 40px !important;
+    padding: 8px 15px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+    border: none !important;
+    justify-content: space-between !important;
+  }
+  .bottom-nav-item {
+    font-size: 0 !important; /* Hide text */
+    color: #888 !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+  }
+  .bottom-nav-item i {
+    font-size: 18px !important;
+  }
+  .bottom-nav-item.active {
+    background: #ff7643 !important;
+  }
+  .bottom-nav-item.active i {
+    color: #fff !important;
+  }
+}
