@@ -118,15 +118,13 @@ const Account = ({ user }) => {
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
-    if (isMobile) {
-      setShowMobileMenu(false);
-    }
+    setShowMobileMenu(false);
   };
 
   return (
     <div className="account-page-swiggy">
       {/* Hero Section */}
-      <div className={`account-hero-swiggy ${isMobile && !showMobileMenu ? 'mobile-hidden' : ''}`}>
+      <div className={`account-hero-swiggy ${!showMobileMenu ? 'mobile-hidden' : ''}`}>
         <div className="account-hero-content">
           <div className="account-hero-image desktop-hidden">
              <img src={user?.avatar || "https://ui-avatars.com/api/?name=" + (user?.name || 'Guest') + "&background=f26522&color=fff"} alt="Profile" />
@@ -147,7 +145,7 @@ const Account = ({ user }) => {
       {/* Main Layout */}
       <div className="account-layout-swiggy">
         {/* Sidebar */}
-        <div className={`account-sidebar-swiggy ${isMobile && !showMobileMenu ? 'mobile-hidden' : ''}`}>
+        <div className={`account-sidebar-swiggy ${!showMobileMenu ? 'mobile-hidden' : ''}`}>
           <button className="desktop-hidden" onClick={() => setIsEditProfileDrawerOpen(true)}>
             <div className="sidebar-icon-swiggy"><i className="far fa-user"></i></div> Personal Information <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
           </button>
@@ -181,17 +179,15 @@ const Account = ({ user }) => {
         </div>
 
         {/* Content */}
-        <div className={`account-content-swiggy ${isMobile && showMobileMenu ? 'mobile-hidden' : ''}`}>
-          {isMobile && (
-            <div className="mobile-content-header" style={{ display: 'flex', alignItems: 'center', padding: '15px', background: '#fff', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 5px rgba(0,0,0,0.05)', marginBottom: '15px' }}>
-              <button onClick={() => setShowMobileMenu(true)} style={{ background: 'none', border: 'none', fontSize: '18px', marginRight: '15px', color: '#333' }}>
-                <i className="fas fa-arrow-left"></i>
-              </button>
-              <h2 style={{ fontSize: '18px', margin: 0, color: '#111' }}>
-                {activeTab === 'orders' ? 'My Orders' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-              </h2>
-            </div>
-          )}
+        <div className={`account-content-swiggy ${showMobileMenu ? 'mobile-hidden' : ''}`}>
+          <div className="mobile-content-header desktop-hidden" style={{ display: 'flex', alignItems: 'center', padding: '15px', background: '#fff', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 5px rgba(0,0,0,0.05)', marginBottom: '15px' }}>
+            <button onClick={() => setShowMobileMenu(true)} style={{ background: 'none', border: 'none', fontSize: '18px', marginRight: '15px', color: '#333' }}>
+              <i className="fas fa-arrow-left"></i>
+            </button>
+            <h2 style={{ fontSize: '18px', margin: 0, color: '#111' }}>
+              {activeTab === 'orders' ? 'My Orders' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+            </h2>
+          </div>
           {activeTab === 'orders' && (
             <div className="past-orders-section">
               <h2 className="section-title-swiggy">Past Orders</h2>
