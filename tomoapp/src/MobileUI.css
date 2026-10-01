@@ -3,6 +3,10 @@
    ========================================= */
 
 @media (max-width: 768px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+
   /* Hide desktop-specific elements */
   .swiggy-nav-links {
     display: none !important;
