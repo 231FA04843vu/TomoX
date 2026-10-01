@@ -622,36 +622,34 @@
   }
   .account-sidebar-swiggy {
     width: 100% !important;
-    display: flex !important;
-    flex-direction: row !important;
-    overflow-x: auto !important;
-    padding: 10px 15px !important;
-    background: #fff !important;
-    border-bottom: 1px solid #eee !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    white-space: nowrap;
-    scrollbar-width: none;
-    gap: 10px;
-  }
-  .account-sidebar-swiggy::-webkit-scrollbar {
-    display: none;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    padding: 15px !important;
+    background: transparent !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    white-space: normal !important;
   }
   .account-sidebar-swiggy button {
-    padding: 8px 16px !important;
-    font-size: 13px !important;
-    border-radius: 20px !important;
-    border: 1px solid #ddd !important;
-    margin: 0 !important;
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
-    background: #fdfdfd !important;
+    justify-content: center !important;
+    padding: 15px 10px !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    border: 1px solid #eaeaea !important;
+    color: #444 !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
-    color: #555 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+    margin: 0 !important;
   }
   .account-sidebar-swiggy button.active {
-    background: #000 !important;
-    color: #fff !important;
-    border-color: #000 !important;
+    background: #fff5f0 !important;
+    border-color: #f26522 !important;
+    color: #f26522 !important;
   }
   .account-sidebar-swiggy button.logout-btn-swiggy {
     color: #e43b4f !important;
@@ -659,27 +657,45 @@
     background: #fff5f5 !important;
   }
   .account-sidebar-swiggy button .sidebar-icon-swiggy {
-    display: none !important;
+    display: flex !important;
+    font-size: 20px !important;
+    margin-bottom: 8px !important;
+    color: #f26522 !important;
+  }
+  .account-sidebar-swiggy button.logout-btn-swiggy .sidebar-icon-swiggy {
+    color: #e43b4f !important;
   }
   .account-hero-swiggy {
-    padding: 20px 15px !important;
+    padding: 25px 15px !important;
     margin-bottom: 0 !important;
     text-align: left;
+    background: #111 !important;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   }
   .account-hero-swiggy .account-hero-content {
     flex-direction: column !important;
     align-items: flex-start !important;
   }
   .account-hero-swiggy .account-hero-text h2 {
-    font-size: 20px !important;
+    font-size: 22px !important;
+    color: #fff !important;
+    margin-bottom: 5px !important;
   }
   .account-hero-swiggy .account-hero-text p {
     font-size: 13px !important;
+    color: #ddd !important;
   }
   .account-hero-swiggy .edit-profile-btn-swiggy {
-    margin-top: 15px !important;
+    margin-top: 20px !important;
     width: 100% !important;
     text-align: center !important;
+    background: #fff !important;
+    color: #111 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    padding: 12px !important;
   }
   .account-content-swiggy {
     padding: 15px !important;
