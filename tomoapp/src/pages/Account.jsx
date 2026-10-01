@@ -133,15 +133,38 @@ const Account = ({ user }) => {
 
   const handleDeleteDevice = async (id) => {
     try {
+      // Optimistically update the UI to show a tick mark/loading state
+      setLoginDevices(prev => prev.map(device => 
+        device.id === id ? { ...device, deleting: true } : device
+      ));
+      
       const res = await fetch(`${import.meta.env.VITE_API_COMPANY}/api/me/devices/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${authToken}` },
       });
+      
       if (res.ok) {
-        setLoginDevices(prev => prev.filter(device => device.id !== id));
+        // Mark as successfully logged out
+        setLoginDevices(prev => prev.map(device => 
+          device.id === id ? { ...device, deleting: false, deleted: true } : device
+        ));
+        
+        // Remove it entirely after a short delay
+        setTimeout(() => {
+          setLoginDevices(prev => prev.filter(device => device.id !== id));
+        }, 3000);
+      } else {
+        // Revert on failure
+        setLoginDevices(prev => prev.map(device => 
+          device.id === id ? { ...device, deleting: false } : device
+        ));
       }
     } catch (err) {
       console.error(err);
+      // Revert on error
+      setLoginDevices(prev => prev.map(device => 
+        device.id === id ? { ...device, deleting: false } : device
+      ));
     }
   };
 
@@ -456,10 +479,31 @@ const Account = ({ user }) => {
                       
                       {!device.current ? (
                         <button 
-                          onClick={() => handleDeleteDevice(device.id)}
-                          style={{ background: '#fff5f5', color: '#e43b4f', border: '1px solid #f8d7da', borderRadius: '6px', padding: '8px 12px', fontSize: '13px', fontWeight: 'bold' }}
+                          onClick={() => !device.deleting && !device.deleted && handleDeleteDevice(device.id)}
+                          style={{ 
+                            background: device.deleted ? '#e5f8ed' : '#fff5f5', 
+                            color: device.deleted ? '#00a85a' : '#e43b4f', 
+                            border: `1px solid ${device.deleted ? '#c3e6cb' : '#f8d7da'}`, 
+                            borderRadius: '6px', 
+                            padding: '8px 12px', 
+                            fontSize: '13px', 
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            minWidth: '80px',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease'
+                          }}
+                          disabled={device.deleting || device.deleted}
                         >
-                          Delete
+                          {device.deleting ? (
+                            <i className="fas fa-spinner fa-spin"></i>
+                          ) : device.deleted ? (
+                            <><i className="fas fa-check-circle animated-tick"></i> Logged Out</>
+                          ) : (
+                            'Delete'
+                          )}
                         </button>
                       ) : null}
                     </div>

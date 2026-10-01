@@ -262,6 +262,12 @@ exports.deleteDevice = async (req, res) => {
     user.devices = user.devices.filter(d => d.deviceId !== deviceId);
     await user.save();
     
+    // Emit real-time event to log out the target device instantly
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user:${user._id}`).emit("session:revoked", { deviceId });
+    }
+    
     res.json({ message: "Device deleted successfully" });
   } catch (err) {
     console.error(err);

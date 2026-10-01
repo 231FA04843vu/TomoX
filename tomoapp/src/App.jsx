@@ -267,6 +267,26 @@ function App() {
           ));
         }
       });
+      
+      socket.on("session:revoked", (payload) => {
+        if (payload?.deviceId) {
+          try {
+            const currentToken = localStorage.getItem("token");
+            if (currentToken) {
+              const decoded = JSON.parse(atob(currentToken.split('.')[1]));
+              if (decoded.deviceId === payload.deviceId) {
+                // This device was revoked, log out immediately
+                localStorage.removeItem("token");
+                localStorage.removeItem(USER_STORAGE_KEY);
+                setUser(null);
+                window.location.href = '/?loggedOut=true';
+              }
+            }
+          } catch (e) {
+            console.error("Failed to parse token for device validation", e);
+          }
+        }
+      });
     });
 
     return () => {
