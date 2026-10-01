@@ -201,7 +201,7 @@ const Account = ({ user }) => {
             <div className="past-orders-section" style={{ padding: '0 20px' }}>
               <h2 className="section-title-swiggy" style={{ fontSize: '20px', fontWeight: '800', marginBottom: '25px', color: '#282c3f' }}>Manage Addresses</h2>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div className="addresses-grid" style={{ display: 'grid', gap: '20px' }}>
 
                 {addresses.map(address => (
                   <div key={address._id} style={{ border: '1px solid #d4d5d9', padding: '24px', backgroundColor: '#fff', position: 'relative' }}>
