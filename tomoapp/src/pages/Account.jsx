@@ -20,9 +20,18 @@ const Account = ({ user }) => {
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
   
   const [visibleOrdersCount, setVisibleOrdersCount] = useState(5);
+  
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showMobileMenu, setShowMobileMenu] = useState(true);
 
   const authToken = useMemo(() => localStorage.getItem("token"), []);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -107,14 +116,25 @@ const Account = ({ user }) => {
     setViewingOrderDetails(order);
   };
 
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    if (isMobile) {
+      setShowMobileMenu(false);
+    }
+  };
+
   return (
     <div className="account-page-swiggy">
       {/* Hero Section */}
-      <div className="account-hero-swiggy">
+      <div className={`account-hero-swiggy ${isMobile && !showMobileMenu ? 'mobile-hidden' : ''}`}>
         <div className="account-hero-content">
+          <div className="account-hero-image desktop-hidden">
+             <img src={user?.avatar || "https://ui-avatars.com/api/?name=" + (user?.name || 'Guest') + "&background=f26522&color=fff"} alt="Profile" />
+          </div>
           <div className="account-hero-text">
             <h2>{user?.name || 'Guest User'}</h2>
-            <p>
+            <p className="desktop-hidden">{user?.email || user?.phone || ''}</p>
+            <p className="mobile-hidden">
               {user?.phone ? `${user.phone} ` : ''}
               {user?.phone && user?.email ? '• ' : ''}
               {user?.email || ''}
@@ -127,36 +147,51 @@ const Account = ({ user }) => {
       {/* Main Layout */}
       <div className="account-layout-swiggy">
         {/* Sidebar */}
-        <div className="account-sidebar-swiggy">
-          <button className={activeTab === 'orders' ? 'active' : ''} onClick={() => setActiveTab('orders')}>
-            <div className="sidebar-icon-swiggy"><i className="fas fa-shopping-bag"></i></div> Orders
+        <div className={`account-sidebar-swiggy ${isMobile && !showMobileMenu ? 'mobile-hidden' : ''}`}>
+          <button className="desktop-hidden" onClick={() => setIsEditProfileDrawerOpen(true)}>
+            <div className="sidebar-icon-swiggy"><i className="far fa-user"></i></div> Personal Information <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
+          </button>
+          
+          <button className={activeTab === 'orders' ? 'active' : ''} onClick={() => handleTabClick('orders')}>
+            <div className="sidebar-icon-swiggy"><i className="fas fa-tags"></i></div> My Orders <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
           </button>
 
-          <button className={activeTab === 'favourites' ? 'active' : ''} onClick={() => setActiveTab('favourites')}>
-            <div className="sidebar-icon-swiggy"><i className="fas fa-heart"></i></div> Favourites
+          <button className={activeTab === 'addresses' ? 'active' : ''} onClick={() => handleTabClick('addresses')}>
+            <div className="sidebar-icon-swiggy"><i className="fas fa-map-marker-alt"></i></div> Addresses <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
           </button>
-          <button className={activeTab === 'payments' ? 'active' : ''} onClick={() => setActiveTab('payments')}>
-            <div className="sidebar-icon-swiggy"><i className="fas fa-credit-card"></i></div> Payments
+          
+          <button className={activeTab === 'payments' ? 'active' : ''} onClick={() => handleTabClick('payments')}>
+            <div className="sidebar-icon-swiggy"><i className="fas fa-wallet"></i></div> Payment Methods <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
           </button>
-          <button className={activeTab === 'addresses' ? 'active' : ''} onClick={() => setActiveTab('addresses')}>
-            <div className="sidebar-icon-swiggy"><i className="fas fa-map-marker-alt"></i></div> Addresses
+          
+          <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => handleTabClick('settings')}>
+            <div className="sidebar-icon-swiggy"><i className="fas fa-cog"></i></div> Settings <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
           </button>
-          <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>
-            <div className="sidebar-icon-swiggy"><i className="fas fa-cog"></i></div> Settings
+          
+          <button className={activeTab === 'support' ? 'active' : ''} onClick={() => handleTabClick('support')}>
+            <div className="sidebar-icon-swiggy"><i className="far fa-question-circle"></i></div> Help & Support <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
           </button>
-          <button className={activeTab === 'support' ? 'active' : ''} onClick={() => setActiveTab('support')}>
-            <div className="sidebar-icon-swiggy"><i className="fas fa-headset"></i></div> Customer Support
-          </button>
+          
           <button className="logout-btn-swiggy" onClick={() => {
             localStorage.removeItem('token');
             window.location.href = '/';
           }}>
-            <div className="sidebar-icon-swiggy"><i className="fas fa-power-off"></i></div> Logout
+            <div className="sidebar-icon-swiggy"><i className="fas fa-sign-out-alt"></i></div> Logout <i className="fas fa-chevron-right chevron-icon desktop-hidden"></i>
           </button>
         </div>
 
         {/* Content */}
-        <div className="account-content-swiggy">
+        <div className={`account-content-swiggy ${isMobile && showMobileMenu ? 'mobile-hidden' : ''}`}>
+          {isMobile && (
+            <div className="mobile-content-header" style={{ display: 'flex', alignItems: 'center', padding: '15px', background: '#fff', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 5px rgba(0,0,0,0.05)', marginBottom: '15px' }}>
+              <button onClick={() => setShowMobileMenu(true)} style={{ background: 'none', border: 'none', fontSize: '18px', marginRight: '15px', color: '#333' }}>
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <h2 style={{ fontSize: '18px', margin: 0, color: '#111' }}>
+                {activeTab === 'orders' ? 'My Orders' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+              </h2>
+            </div>
+          )}
           {activeTab === 'orders' && (
             <div className="past-orders-section">
               <h2 className="section-title-swiggy">Past Orders</h2>
