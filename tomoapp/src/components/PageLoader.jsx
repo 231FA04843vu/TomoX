@@ -14,15 +14,6 @@ const PageLoader = () => {
           style={{ height: '180px', width: '180px' }}
         />
       </div>
-      <h2 className="tomox-loader-text">
-        <span className="bouncing-letters">
-          {"TomoX Delivery on the way...".split("").map((char, i) => (
-            <span key={i} style={{ animationDelay: `${i * 0.05}s` }}>
-              {char === " " ? "\u00A0" : char}
-            </span>
-          ))}
-        </span>
-      </h2>
     </div>
   );
 };
