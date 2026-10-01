@@ -24,12 +24,8 @@ const Account = ({ user }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showMobileMenu, setShowMobileMenu] = useState(true);
 
-  // Mock devices for UI
-  const [loginDevices, setLoginDevices] = useState([
-    { id: 1, device: 'MacBook Pro', os: 'macOS', browser: 'Chrome', ip: '192.168.1.5', current: true, lastActive: 'Just now' },
-    { id: 2, device: 'iPhone 13', os: 'iOS 16', browser: 'Safari', ip: '192.168.1.12', current: false, lastActive: '2 hours ago' },
-    { id: 3, device: 'Windows PC', os: 'Windows 11', browser: 'Edge', ip: '10.0.0.45', current: false, lastActive: 'Yesterday' }
-  ]);
+  const [loginDevices, setLoginDevices] = useState([]);
+  const [loadingDevices, setLoadingDevices] = useState(false);
 
   const authToken = useMemo(() => localStorage.getItem("token"), []);
   const location = useLocation();
@@ -75,9 +71,25 @@ const Account = ({ user }) => {
         setLoadingOrders(false);
       }
     };
+    
+    const fetchDevices = async () => {
+      try {
+        setLoadingDevices(true);
+        const res = await fetch(`${import.meta.env.VITE_API_COMPANY}/api/me/devices`, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+        const data = await res.json();
+        if (res.ok) setLoginDevices(data.devices || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingDevices(false);
+      }
+    };
 
     fetchAddresses();
     fetchOrders();
+    fetchDevices();
   }, [authToken]);
 
   const handleSaveAddress = async (updatedAddress) => {
@@ -119,9 +131,18 @@ const Account = ({ user }) => {
     }
   };
 
-  const handleDeleteDevice = (id) => {
-    setLoginDevices(prev => prev.filter(device => device.id !== id));
-    // Here you would also call an API to invalidate that specific session token
+  const handleDeleteDevice = async (id) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_COMPANY}/api/me/devices/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (res.ok) {
+        setLoginDevices(prev => prev.filter(device => device.id !== id));
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleViewDetails = (order) => {
@@ -417,31 +438,35 @@ const Account = ({ user }) => {
               <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>Review the devices currently logged into your account. Delete a device to automatically log it out.</p>
               
               <div className="devices-list">
-                {loginDevices.map(device => (
-                  <div key={device.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', background: '#fff', border: '1px solid #eee', borderRadius: '12px', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div style={{ fontSize: '24px', color: device.current ? '#f26522' : '#888', marginRight: '15px', width: '30px', textAlign: 'center' }}>
-                        <i className={device.device.toLowerCase().includes('iphone') ? 'fas fa-mobile-alt' : 'fas fa-laptop'}></i>
+                {loadingDevices ? (
+                  <p style={{ textAlign: 'center', color: '#888' }}>Loading devices...</p>
+                ) : (
+                  loginDevices.map(device => (
+                    <div key={device.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', background: '#fff', border: '1px solid #eee', borderRadius: '12px', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div style={{ fontSize: '24px', color: device.current ? '#f26522' : '#888', marginRight: '15px', width: '30px', textAlign: 'center' }}>
+                          <i className={device.device.toLowerCase().includes('iphone') || device.device.toLowerCase().includes('mobile') ? 'fas fa-mobile-alt' : 'fas fa-laptop'}></i>
+                        </div>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '15px', color: '#333' }}>{device.device} {device.current && <span style={{ fontSize: '11px', background: '#e5f8ed', color: '#00a85a', padding: '2px 6px', borderRadius: '4px', marginLeft: '5px' }}>Current</span>}</h4>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#666' }}>{device.os} • {device.browser}</p>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#999' }}>IP: {device.ip} • Last Active: {device.lastActive}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 style={{ margin: 0, fontSize: '15px', color: '#333' }}>{device.device} {device.current && <span style={{ fontSize: '11px', background: '#e5f8ed', color: '#00a85a', padding: '2px 6px', borderRadius: '4px', marginLeft: '5px' }}>Current</span>}</h4>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#666' }}>{device.os} • {device.browser}</p>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#999' }}>IP: {device.ip} • Last Active: {device.lastActive}</p>
-                      </div>
+                      
+                      {!device.current ? (
+                        <button 
+                          onClick={() => handleDeleteDevice(device.id)}
+                          style={{ background: '#fff5f5', color: '#e43b4f', border: '1px solid #f8d7da', borderRadius: '6px', padding: '8px 12px', fontSize: '13px', fontWeight: 'bold' }}
+                        >
+                          Delete
+                        </button>
+                      ) : null}
                     </div>
-                    
-                    {!device.current ? (
-                      <button 
-                        onClick={() => handleDeleteDevice(device.id)}
-                        style={{ background: '#fff5f5', color: '#e43b4f', border: '1px solid #f8d7da', borderRadius: '6px', padding: '8px 12px', fontSize: '13px', fontWeight: 'bold' }}
-                      >
-                        Delete
-                      </button>
-                    ) : null}
-                  </div>
-                ))}
+                  ))
+                )}
                 
-                {loginDevices.length === 0 && (
+                {!loadingDevices && loginDevices.length === 0 && (
                   <p style={{ textAlign: 'center', color: '#888', marginTop: '20px' }}>No active devices found.</p>
                 )}
               </div>

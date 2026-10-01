@@ -37,6 +37,16 @@ const userSchema = new mongoose.Schema({
       isDefault: { type: Boolean, default: false },
     },
   ],
+  devices: [
+    {
+      deviceId: { type: String, required: true },
+      deviceType: { type: String },
+      os: { type: String },
+      browser: { type: String },
+      ip: { type: String },
+      lastActive: { type: Date, default: Date.now }
+    }
+  ],
 });
 
 userSchema.pre("save", async function (next) {

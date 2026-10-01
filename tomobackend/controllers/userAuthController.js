@@ -57,6 +57,33 @@ const normalizeNotificationPreferences = (raw) => ({
   email: raw?.email !== false,
 });
 
+const crypto = require("crypto");
+
+const parseUserAgent = (ua) => {
+  if (!ua) return { os: 'Unknown OS', browser: 'Unknown Browser', deviceType: 'Unknown Device' };
+  let os = 'Unknown OS';
+  if (ua.includes('Win')) os = 'Windows';
+  else if (ua.includes('Mac')) os = 'macOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+  else if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('like Mac OS X')) os = 'iOS';
+  
+  let browser = 'Unknown Browser';
+  if (ua.includes('Chrome') || ua.includes('CriOS')) browser = 'Chrome';
+  else if (ua.includes('Edg')) browser = 'Edge';
+  else if (ua.includes('Firefox') || ua.includes('FxiOS')) browser = 'Firefox';
+  else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+  
+  let deviceType = 'Desktop';
+  if (/Mobi|Android/i.test(ua)) deviceType = 'Mobile';
+  if (/iPad|Tablet/i.test(ua)) deviceType = 'Tablet';
+  if (ua.includes('iPhone')) deviceType = 'iPhone';
+  if (ua.includes('Macintosh')) deviceType = 'Mac';
+  if (ua.includes('Windows')) deviceType = 'Windows PC';
+  
+  return { os, browser, deviceType };
+};
+
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, otp } = req.body;
@@ -133,7 +160,33 @@ exports.login = async (req, res) => {
     if (!match)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = generateToken(user);
+    // Track login device
+    const userAgent = req.headers['user-agent'] || '';
+    const { os, browser, deviceType } = parseUserAgent(userAgent);
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip || 'Unknown IP';
+    const deviceId = crypto.randomBytes(16).toString('hex');
+    
+    // Add device to user
+    if (!user.devices) user.devices = [];
+    user.devices.push({
+      deviceId,
+      deviceType,
+      os,
+      browser,
+      ip,
+      lastActive: Date.now()
+    });
+    
+    // Keep max 10 devices
+    if (user.devices.length > 10) {
+      user.devices.shift();
+    }
+    
+    await user.save();
+
+    // Generate token with deviceId
+    const token = jwt.sign({ id: user._id, deviceId }, JWT_SECRET, { expiresIn: "7d" });
+    
     res.json({
       token,
       user: {
@@ -147,6 +200,7 @@ exports.login = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Login failed" });
   }
 };
@@ -158,6 +212,60 @@ exports.me = async (req, res) => {
     res.json({ user });
   } catch {
     res.status(401).json({ message: "Unauthorized" });
+  }
+};
+
+exports.getDevices = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+    
+    // Map devices to the frontend expected format
+    const devices = (user.devices || []).map(d => {
+      // Calculate last active relative time
+      const diffMs = Date.now() - new Date(d.lastActive).getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      
+      let lastActiveStr = 'Just now';
+      if (diffMins > 0 && diffMins < 60) lastActiveStr = `${diffMins} mins ago`;
+      else if (diffHours > 0 && diffHours < 24) lastActiveStr = `${diffHours} hours ago`;
+      else if (diffDays === 1) lastActiveStr = 'Yesterday';
+      else if (diffDays > 1) lastActiveStr = `${diffDays} days ago`;
+      
+      return {
+        id: d.deviceId,
+        device: d.deviceType || 'Unknown Device',
+        os: d.os || 'Unknown OS',
+        browser: d.browser || 'Unknown Browser',
+        ip: d.ip || 'Unknown IP',
+        current: d.deviceId === req.deviceId,
+        lastActive: lastActiveStr
+      };
+    });
+    
+    res.json({ devices: devices.reverse() }); // Newest first
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch devices" });
+  }
+};
+
+exports.deleteDevice = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+    
+    // Remove the device
+    user.devices = user.devices.filter(d => d.deviceId !== deviceId);
+    await user.save();
+    
+    res.json({ message: "Device deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete device" });
   }
 };
 

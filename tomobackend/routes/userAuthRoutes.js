@@ -20,4 +20,7 @@ router.put("/me/addresses/:addressId", authUser, userAuth.updateAddress);
 router.delete("/me/addresses/:addressId", authUser, userAuth.deleteAddress);
 router.delete("/me", authUser, userAuth.deleteAccount);
 
+router.get("/me/devices", authUser, userAuth.getDevices);
+router.delete("/me/devices/:deviceId", authUser, userAuth.deleteDevice);
+
 module.exports = router;
